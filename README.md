@@ -1,26 +1,27 @@
 # paper-bot
 
-Zwei Paper-Trading-Tests, beide ohne Konto, ohne Wallet und ohne echte Orders:
+Paper-Trading-Bot für KuCoin-Futures, ohne Konto und ohne echte Orders. Dashboard: `docs/futures.html`
 
-- **KuCoin Spot** (`kucoin/`): Trendfolge auf 16 Coins mit 1.000 USDT Scheinkapital. Dashboard: `docs/spot.html`
-- **Polymarket Up/Down** (`bot/`): stündliche Kryptomärkte. Dashboard: `docs/index.html`
+## KuCoin-Futures-Bot
 
-## KuCoin-Spot-Bot
+Trendfolge auf 16 USDT-Perpetuals mit 1.000 USDT Scheinkapital, long und short. Regeln (Einstellungen oben in `kucoin/futures_bot.py`):
 
-Nur kaufen und verkaufen, kein Hebel, keine Leerverkäufe. Regeln (Einstellungen oben in `kucoin/spot_bot.py`):
+- **Einstieg:** Schlusskurs der Stundenkerze über dem 40-Tage-Hoch (long) oder unter dem 40-Tage-Tief (short).
+- **Ausstieg:** Gegenkanal der letzten 20 Tage oder Stop bei 12 × Stunden-ATR (rund 2,5 Tagesspannen). Der Stop wird im Gewinn nachgezogen und zwischen den Läufen mit Minutenkerzen nachgeprüft.
+- **Größe:** Mindestens 100 USDT je Position. Ziel ist, dass ein Stop 0,5 % des Kontos kostet. Würde schon die Mindestgröße mehr als 1 % riskieren, wird der Trade ausgelassen.
+- **Hebel:** Eine Position höchstens 1,5 × Konto, alle zusammen höchstens 3 ×. Erlaubt wären 10 ×.
+- **Kosten:** Kauf am Briefkurs, Verkauf am Geldkurs, 0,06 % Taker-Gebühr, 0,02 % Slippage, echte Funding-Raten.
 
-- **Kauf:** Schlusskurs der Stundenkerze über dem 40-Tage-Hoch.
-- **Verkauf:** Schlusskurs unter dem 20-Tage-Tief oder Stop bei 12 × Stunden-ATR (rund 2,5 Tagesspannen). Der Stop wird im Gewinn nachgezogen und zwischen den Läufen mit Minutenkerzen nachgeprüft.
-- **Größe:** 10 % des Kontos je Coin, mindestens 100 USDT, höchstens so viel, wie frei ist.
-- **Kosten:** Kauf am Briefkurs, Verkauf am Geldkurs, 0,1 % Taker-Gebühr, 0,02 % Slippage.
+Rücktest (`kucoin/research/`), August 2024 bis November 2026: etwa +14 % pro Jahr bei −10,5 % größtem Rückgang, 131 Trades, 41 % Gewinner, 13 von 27 Monaten im Plus. Die ersten 15 Monate brachten nur +2 % pro Jahr, die letzten 12 Monate +25 %. Der Zeitraum ist kurz und die Regeln wurden an denselben Daten gewählt, die Zahlen sind also eher zu günstig.
 
-Rücktest (`kucoin/research/spot.py`), August 2024 bis November 2026: etwa +15 % pro Jahr bei −31 % größtem Rückgang, 37 % Gewinntrades. Ein einziger Monat (November 2024, +48 %) trägt das gesamte Ergebnis, nur 9 von 27 Monaten lagen im Plus. Dieselben Coins zu halten brachte +6 % bei −69 % Rückgang. Der Zeitraum ist kurz und die Regeln wurden an denselben Daten gewählt, die Zahlen sind also eher zu günstig.
+Was sonst getestet wurde (`grid.py`, `grid2.py`, `uni.py`, `spot.py`, `ideas.py`): Gegentrend-Strategien und schnelle Trendfolge verloren Geld, Stark-gegen-Schwach lag um null, 29 zusätzliche Coins erhöhten vor allem den Rückgang, ein Bitcoin-Trendfilter brachte keinen messbaren Vorteil, und das Einsammeln der Funding-Rate lohnt bei den Raten von 2025/26 (im Schnitt 0 bis 2 % pro Jahr) nicht.
 
-Vorgänger war ein Futures-Bot mit Hebel und Leerverkäufen. Er wurde auf Spot umgestellt, bevor er einen Trade gemacht hatte. Sein Rücktest liegt weiter unter `kucoin/research/` (`grid.py`, `grid2.py`, `final.py`, `uni.py`).
+Grenzen: Der Bot läuft etwa alle fünf Minuten. Stops werden zum Stop-Kurs abgerechnet (bei Kurslücken schlechter), in einem Absturz kann ein echter Stop weiter durchrutschen. Viele Coins fallen und steigen gemeinsam, mehrere Positionen sind dann praktisch eine große.
 
-Grenzen: Der Bot läuft etwa alle fünf Minuten. Stops werden zum Stop-Kurs abgerechnet (bei Kurslücken schlechter), in einem Absturz kann ein echter Stop weiter durchrutschen. Die Coins steigen und fallen meist gemeinsam, zehn Positionen sind dann praktisch eine große.
+## Polymarket-Bot (beendet)
 
-## Polymarket-Bot
+Der Test der stündlichen Up/Down-Märkte wurde am 12.11.2026 beendet, weil Polymarket aus Deutschland nicht handelbar ist. Code und letzter Stand bleiben zur Ansicht (`bot/`, `docs/polymarket.html`).
+
 
 Paper-Trading-Test für die stündlichen **Up or Down**-Kryptomärkte auf Polymarket (BTC, ETH, SOL, XRP, DOGE, BNB).
 Kein Konto, kein Wallet, keine Orders: Der Bot liest nur öffentliche Daten und loggt Scheintrades.
@@ -41,8 +42,8 @@ Kein Konto, kein Wallet, keine Orders: Der Bot liest nur öffentliche Daten und 
 | `data/observations.csv` | Jede Messung: Kurs, Modellwert, Marktpreise |
 | `data/trades.json` | Alle Scheintrades mit Begründung und Ergebnis |
 | `data/rounds.json` | Ergebnis jeder Runde |
-| `docs/` | Dashboard (GitHub Pages) |
-| `kucoin/spot_bot.py` | Spot-Scheinkonto, Daten in `data/spot/` |
+| `docs/` | Dashboards (GitHub Pages) |
+| `kucoin/futures_bot.py` | Futures-Scheinkonto, Daten in `data/futures/` |
 | `.github/workflows/bot.yml` | Je Lauf 5 Messungen im Minutentakt, danach startet der Lauf seinen Nachfolger |
 
 ## Annahmen und Grenzen

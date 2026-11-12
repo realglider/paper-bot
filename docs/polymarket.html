@@ -1,0 +1,247 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Paper-Bot · Krypto Up/Down</title>
+<style>
+:root{
+  --bg:#f4f2ec;--card:#fffdf8;--ink:#1c1b18;--mute:#6f6a5f;--line:#ddd8cb;
+  --pos:#1f6f4a;--neg:#a8402a;--model:#2b5fa8;--market:#b0742a;--warn:#8a6100;
+  --mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme:dark){:root{
+  --bg:#15161a;--card:#1d1f25;--ink:#ecebe6;--mute:#9a988f;--line:#30333c;
+  --pos:#5fc592;--neg:#ee8a70;--model:#7fadf0;--market:#e0aa62;--warn:#e2b84c;
+}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 system-ui,-apple-system,"Segoe UI",sans-serif}
+main{max-width:1040px;margin:0 auto;padding:20px 16px 48px}
+nav{display:flex;gap:6px;margin-bottom:14px;flex-wrap:wrap}
+nav a{font-size:13px;padding:5px 12px;border:1px solid var(--line);border-radius:999px;color:var(--mute);text-decoration:none}
+nav a.on{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+header{display:flex;flex-wrap:wrap;gap:8px 16px;align-items:baseline;justify-content:space-between;margin-bottom:6px}
+h1{font-size:20px;margin:0;letter-spacing:.01em}
+h2{font-size:12px;margin:0 0 10px;color:var(--mute);text-transform:uppercase;letter-spacing:.09em;font-weight:600}
+.tag{font:12px var(--mono);border:1px solid var(--line);border-radius:999px;padding:2px 10px;color:var(--mute)}
+.tag.stale{color:var(--warn);border-color:var(--warn)}
+.sub{color:var(--mute);margin:0 0 18px;max-width:70ch}
+.card{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:16px;margin-bottom:14px}
+.verdict{border-left:4px solid var(--mute)}
+.verdict.pos{border-left-color:var(--pos)}.verdict.neg{border-left-color:var(--neg)}
+.verdict b{display:block;font-size:17px;margin-bottom:2px}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-bottom:14px}
+.kpi{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:12px 14px}
+.kpi .l{font-size:12px;color:var(--mute)}
+.kpi .v{font:600 22px var(--mono);white-space:nowrap;font-variant-numeric:tabular-nums;margin:2px 0}
+.kpi .n{font-size:12px;color:var(--mute)}
+.pos{color:var(--pos)}.neg{color:var(--neg)}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+@media (max-width:760px){.grid{grid-template-columns:1fr}}
+.grid .card{margin:0}
+svg{display:block;width:100%;height:auto}
+.legend{display:flex;gap:14px;flex-wrap:wrap;font-size:12px;color:var(--mute);margin-top:8px}
+.legend i{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:5px;vertical-align:-1px}
+.live{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:10px;font-family:var(--mono)}
+.live span{display:block;font:12px system-ui,sans-serif;color:var(--mute)}
+.scroll{overflow-x:auto}
+table{border-collapse:collapse;width:100%;font-size:13px;min-width:760px}
+th{text-align:left;color:var(--mute);font-weight:600;font-size:12px;border-bottom:1px solid var(--line);padding:6px 8px}
+td{padding:7px 8px;border-bottom:1px solid var(--line);vertical-align:top}
+td.num{font-family:var(--mono);font-variant-numeric:tabular-nums;white-space:nowrap}
+td.why{color:var(--mute)}
+.empty{color:var(--mute);padding:18px 0;text-align:center}
+pre{margin:0;font:12px var(--mono);white-space:pre-wrap;color:var(--neg)}
+footer{color:var(--mute);font-size:12px;margin-top:18px}
+</style>
+</head>
+<body>
+<main>
+  <nav><a href="futures.html">KuCoin Futures</a><a href="polymarket.html" class="on">Polymarket (beendet)</a></nav>
+  <header>
+    <h1>Paper-Bot · Krypto Up/Down stündlich (beendet)</h1>
+    <span class="tag" id="updated">lädt …</span>
+  </header>
+  <p class="sub">Dieser Test wurde am 12.11.2026 beendet, weil Polymarket aus Deutschland nicht handelbar ist. Die Seite zeigt den letzten Stand. Scheintrades ohne echtes Geld. Der Bot berechnet für sechs Coins aus Binance-Kurs, Restlaufzeit und Volatilität eine faire Wahrscheinlichkeit und vergleicht sie mit dem Polymarket-Orderbuch.</p>
+
+  <div class="card verdict" id="verdict"><b>lädt …</b><span></span></div>
+  <div class="kpis" id="kpis"></div>
+
+  <div class="card">
+    <h2>Je Coin: laufende Runde und bisherige Bilanz</h2>
+    <div class="scroll" id="coins"></div>
+    <div class="legend"><span>Spanne = Abstand Geld/Brief im Schnitt</span><span>Abweichung = mittlerer Abstand Modell zu Marktmitte</span><span>Brier: kleiner ist besser</span></div>
+  </div>
+
+  <div class="grid">
+    <div class="card">
+      <h2>Gewinn nach Gebühren (kumuliert, $)</h2>
+      <div id="equity"></div>
+    </div>
+    <div class="card">
+      <h2>Kalibrierung: Prognose gegen Ergebnis</h2>
+      <div id="calib"></div>
+      <div class="legend"><span><i style="background:var(--model)"></i>Modell</span><span><i style="background:var(--market)"></i>Markt</span><span>Diagonale = perfekt</span></div>
+    </div>
+  </div>
+
+  <div class="card" style="margin-top:14px">
+    <h2>Scheintrades (neueste zuerst)</h2>
+    <div class="scroll" id="trades"></div>
+  </div>
+
+  <div class="card" id="errbox" hidden>
+    <h2>Letzte Fehler</h2>
+    <pre id="errors"></pre>
+  </div>
+
+  <footer id="foot"></footer>
+</main>
+<script>
+const $ = id => document.getElementById(id);
+const el = (tag, cls, txt) => { const e = document.createElement(tag); if (cls) e.className = cls; if (txt != null) e.textContent = txt; return e; };
+const usd = (v, sign) => (sign && v > 0 ? "+" : "") + (v < 0 ? "−" : "") + "$" + Math.abs(v).toLocaleString("de-DE", {minimumFractionDigits: 2, maximumFractionDigits: 2});
+const pct = (v, d = 1) => v == null ? "–" : (v * 100).toLocaleString("de-DE", {minimumFractionDigits: d, maximumFractionDigits: d}) + " %";
+const when = s => new Date(s).toLocaleString("de-DE", {day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit"});
+const NS = "http://www.w3.org/2000/svg";
+const svg = (tag, attrs) => { const e = document.createElementNS(NS, tag); for (const k in attrs) e.setAttribute(k, attrs[k]); return e; };
+
+function kpi(label, value, note, cls) {
+  const k = el("div", "kpi");
+  k.append(el("div", "l", label), el("div", "v" + (cls ? " " + cls : ""), value), el("div", "n", note || ""));
+  return k;
+}
+
+function verdict(s) {
+  const box = $("verdict"), n = s.trades;
+  let cls = "", head, text;
+  if (n < 100) {
+    head = "Noch keine Aussage möglich";
+    text = `${n} von mindestens 100 abgerechneten Scheintrades. Bis dahin sind Trefferquote und Gewinn reines Rauschen.`;
+  } else if (s.win_rate_ci[0] > s.breakeven) {
+    cls = "pos"; head = "Vorteil erkennbar";
+    text = `Selbst die untere Grenze der Trefferquote (${pct(s.win_rate_ci[0])}) liegt über der Gewinnschwelle von ${pct(s.breakeven)}.`;
+  } else if (s.win_rate_ci[1] < s.breakeven) {
+    cls = "neg"; head = "Kein Vorteil";
+    text = `Die Trefferquote liegt klar unter der Gewinnschwelle von ${pct(s.breakeven)}. Gebühren und Spread fressen das Modell auf.`;
+  } else {
+    head = "Nicht vom Zufall unterscheidbar";
+    text = `Die Gewinnschwelle (${pct(s.breakeven)}) liegt im Unsicherheitsbereich der Trefferquote (${pct(s.win_rate_ci[0])} bis ${pct(s.win_rate_ci[1])}).`;
+  }
+  box.className = "card verdict " + cls;
+  box.firstElementChild.textContent = head;
+  box.lastElementChild.textContent = text;
+}
+
+function lineChart(host, pts) {
+  host.replaceChildren();
+  if (pts.length < 2) { host.append(el("div", "empty", "Erscheint nach den ersten abgerechneten Trades.")); return; }
+  const W = 480, H = 220, L = 46, R = 10, T = 10, B = 22;
+  const ys = pts.map(p => p.pnl), lo = Math.min(0, ...ys), hi = Math.max(0, ...ys), span = (hi - lo) || 1;
+  const x = i => L + (W - L - R) * i / (pts.length - 1), y = v => T + (H - T - B) * (1 - (v - lo) / span);
+  const s = svg("svg", {viewBox: `0 0 ${W} ${H}`, role: "img", "aria-label": "Kumulierter Gewinn"});
+  for (const v of [lo, 0, hi].filter((v, i, a) => a.indexOf(v) === i)) {
+    s.append(svg("line", {x1: L, x2: W - R, y1: y(v), y2: y(v), stroke: "var(--line)", "stroke-dasharray": v === 0 ? "" : "3 3"}));
+    const t = svg("text", {x: L - 6, y: y(v) + 4, "text-anchor": "end", "font-size": 11, fill: "var(--mute)"}); t.textContent = Math.round(v); s.append(t);
+  }
+  const last = ys[ys.length - 1];
+  s.append(svg("polyline", {points: pts.map((p, i) => `${x(i)},${y(p.pnl)}`).join(" "), fill: "none", stroke: last >= 0 ? "var(--pos)" : "var(--neg)", "stroke-width": 2, "stroke-linejoin": "round"}));
+  const t = svg("text", {x: W - R, y: H - 5, "text-anchor": "end", "font-size": 11, fill: "var(--mute)"}); t.textContent = pts.length + " Trades"; s.append(t);
+  host.append(s);
+}
+
+function calibChart(host, c) {
+  host.replaceChildren();
+  if (!c.model.length) { host.append(el("div", "empty", "Erscheint nach der ersten abgerechneten Runde.")); return; }
+  const W = 480, H = 220, L = 40, R = 20, T = 10, B = 26;
+  const x = v => L + (W - L - R) * v, y = v => T + (H - T - B) * (1 - v);
+  const s = svg("svg", {viewBox: `0 0 ${W} ${H}`, role: "img", "aria-label": "Kalibrierung"});
+  for (const v of [0, .5, 1]) {
+    s.append(svg("line", {x1: L, x2: W - R, y1: y(v), y2: y(v), stroke: "var(--line)"}));
+    let t = svg("text", {x: L - 6, y: y(v) + 4, "text-anchor": "end", "font-size": 11, fill: "var(--mute)"}); t.textContent = v * 100 + "%"; s.append(t);
+    t = svg("text", {x: x(v), y: H - 8, "text-anchor": "middle", "font-size": 11, fill: "var(--mute)"}); t.textContent = v * 100 + "%"; s.append(t);
+  }
+  s.append(svg("line", {x1: x(0), y1: y(0), x2: x(1), y2: y(1), stroke: "var(--mute)", "stroke-dasharray": "4 4"}));
+  for (const [key, col] of [["market", "var(--market)"], ["model", "var(--model)"]]) {
+    const pts = c[key];
+    s.append(svg("polyline", {points: pts.map(p => `${x(p.pred)},${y(p.actual)}`).join(" "), fill: "none", stroke: col, "stroke-width": 1.5, opacity: .7}));
+    for (const p of pts) {
+      const d = svg("circle", {cx: x(p.pred), cy: y(p.actual), r: Math.min(7, 2.5 + Math.sqrt(p.n) / 4), fill: col});
+      const tt = svg("title", {}); tt.textContent = `${key === "model" ? "Modell" : "Markt"}: Prognose ${pct(p.pred)}, eingetreten ${pct(p.actual)}, ${p.n} Messungen`; d.append(tt); s.append(d);
+    }
+  }
+  host.append(s);
+}
+
+function render(d) {
+  const s = d.summary, age = (Date.now() - new Date(d.updated)) / 60000;
+  const u = $("updated");
+  u.textContent = "beendet · letzter Stand " + when(d.updated);
+  u.className = "tag";
+  verdict(s);
+
+  const k = $("kpis"); k.replaceChildren();
+  k.append(
+    kpi("Scheintrades", String(s.trades), s.open ? s.open + " offen" : "alle abgerechnet"),
+    kpi("Trefferquote", pct(s.win_rate), s.win_rate_ci ? `95 %: ${pct(s.win_rate_ci[0], 0)} bis ${pct(s.win_rate_ci[1], 0)} · Schwelle ${pct(s.breakeven, 0)}` : "noch keine Trades"),
+    kpi("Gewinn nach Gebühren", usd(s.pnl, true), `davon Gebühren ${usd(s.fees)}`, s.pnl > 0 ? "pos" : s.pnl < 0 ? "neg" : ""),
+    kpi("Rendite auf Einsatz", pct(s.roi), `Konto ${usd(s.bankroll)} von ${usd(d.config.start_bankroll)}`, s.roi > 0 ? "pos" : s.roi < 0 ? "neg" : ""),
+    kpi("Brier Modell / Markt", [s.brier_model, s.brier_market].map(v => v == null ? "–" : v.toLocaleString("de-DE", {minimumFractionDigits: 3, maximumFractionDigits: 3})).join(" / "), "kleiner ist besser · " + s.rounds + " Runden")
+  );
+
+  const ch = $("coins"); ch.replaceChildren();
+  const num = v => (+v).toLocaleString("de-DE", {maximumSignificantDigits: 6});
+  const ct = el("table"), chr = el("tr");
+  for (const h of ["Coin", "Kurs (zur Eröffnung)", "Rest", "Modell Up", "Markt Up", "Spanne", "Abweichung", "Trades", "Gewinn", "Brier Modell / Markt"]) chr.append(el("th", "", h));
+  ct.append(chr);
+  const f3 = v => v == null ? "–" : v.toLocaleString("de-DE", {minimumFractionDigits: 3, maximumFractionDigits: 3});
+  const cents = v => v == null ? "–" : (v * 100).toLocaleString("de-DE", {minimumFractionDigits: 1, maximumFractionDigits: 1}) + " ct";
+  for (const c of d.coins) {
+    const o = c.latest, r = el("tr");
+    const fresh = o && (Date.now() - new Date(o.ts)) / 60000 < 30;
+    const chg = o ? (+o.spot / +o.open - 1) * 100 : 0;
+    r.append(el("td", "", c.coin),
+      el("td", "num", o ? `${num(o.spot)} (${chg >= 0 ? "+" : "−"}${Math.abs(chg).toFixed(2)} %)` : "–"),
+      el("td", "num", fresh ? (+o.tau_min).toFixed(0) + " min" : "–"),
+      el("td", "num", o ? pct(+o.p_model, 0) : "–"),
+      el("td", "num", o && o.up_bid && o.up_ask ? `${(+o.up_bid).toFixed(2)} / ${(+o.up_ask).toFixed(2)}` : "–"),
+      el("td", "num", cents(c.avg_spread)), el("td", "num", cents(c.avg_gap)),
+      el("td", "num", c.trades ? `${c.wins} von ${c.trades}` : "0"),
+      el("td", "num " + (c.pnl > 0 ? "pos" : c.pnl < 0 ? "neg" : ""), c.trades ? usd(c.pnl, true) : "–"),
+      el("td", "num", f3(c.brier_model) + " / " + f3(c.brier_market)));
+    ct.append(r);
+  }
+  ch.append(ct);
+
+  lineChart($("equity"), d.equity);
+  calibChart($("calib"), d.calibration);
+
+  const host = $("trades"); host.replaceChildren();
+  if (!d.trades.length) host.append(el("div", "empty", `Noch kein Scheintrade. Der Bot handelt nur, wenn das Modell mindestens ${Math.round(d.config.min_edge * 100)} Cent Vorteil nach Gebühr sieht.`));
+  else {
+    const t = el("table"), hr = el("tr");
+    for (const h of ["Zeit", "Coin", "Seite", "Preis", "Stück", "Ergebnis", "Gewinn", "Begründung"]) hr.append(el("th", "", h));
+    t.append(hr);
+    for (const x of d.trades) {
+      const r = el("tr"), done = x.status === "settled";
+      r.append(el("td", "num", when(x.ts)), el("td", "", x.coin), el("td", "", x.side), el("td", "num", x.price.toFixed(2)), el("td", "num", String(x.shares)),
+        el("td", "", done ? (x.win ? "gewonnen" : "verloren") : "offen"),
+        el("td", "num " + (done ? (x.pnl >= 0 ? "pos" : "neg") : ""), done ? usd(x.pnl, true) : "–"),
+        el("td", "why", x.reason));
+      t.append(r);
+    }
+    host.append(t);
+  }
+
+  $("errbox").hidden = !d.errors.length;
+  $("errors").textContent = d.errors.join("\n");
+  $("foot").textContent = `${s.observations.toLocaleString("de-DE")} Messungen · Einsatz ${usd(d.config.stake)} je Trade · Kauf zum Briefkurs inkl. Taker-Gebühr · keine Anlageberatung, kein echtes Geld.`;
+}
+
+fetch("data.json?t=" + Date.now()).then(r => r.json()).then(render).catch(e => {
+  $("verdict").firstElementChild.textContent = "Daten nicht ladbar";
+  $("verdict").lastElementChild.textContent = String(e);
+});
+</script>
+</body>
+</html>

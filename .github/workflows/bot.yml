@@ -21,21 +21,17 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Tests
-        run: python3 -m unittest -q tests.test_model tests.test_spot
+        run: python3 -m unittest -q tests.test_futures
 
-      - name: Messen und Scheintrades loggen
-        run: python3 bot/paper_bot.py --samples 5 --interval 60
-
-      - name: KuCoin-Spot-Scheinkonto
-        if: ${{ !cancelled() }}
-        run: python3 kucoin/spot_bot.py
+      - name: KuCoin-Futures-Scheinkonto
+        run: python3 kucoin/futures_bot.py
 
       - name: Ergebnisse speichern
         if: always()
         run: |
           git config user.name "paper-bot"
           git config user.email "paper-bot@users.noreply.github.com"
-          git add data docs/data.json docs/spot.json
+          git add data docs/futures.json
           git diff --cached --quiet && exit 0
           git commit -q -m "Daten $(date -u +%Y-%m-%dT%H:%MZ)"
           for i in 1 2 3; do
@@ -43,6 +39,11 @@ jobs:
             sleep 5
           done
           exit 1
+
+      # Rund fuenf Minuten Abstand zwischen den Laeufen.
+      - name: Pause
+        if: ${{ !cancelled() }}
+        run: sleep 240
 
       # GitHubs Zeitplan startet oft stark verspaetet oder gar nicht. Deshalb stoesst
       # jeder Lauf den naechsten selbst an. Stoppen: laufenden Lauf abbrechen (Cancel).
