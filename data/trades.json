@@ -220,5 +220,23 @@
   "open": 81.42,
   "status": "open",
   "reason": "Modell 40% für Down, Markt verlangt 0.33, Vorteil nach Gebühr 5.3 Cent"
+ },
+ {
+  "side": "Up",
+  "price": 0.31,
+  "shares": 32,
+  "fee": 0.4791,
+  "cost": 10.3991,
+  "p_model": 0.3911,
+  "edge": 0.0661,
+  "coin": "XRP",
+  "ts": "2026-11-12T17:46:18Z",
+  "round_start": "2026-11-12T17:00:00Z",
+  "slug": "xrp-up-or-down-november-12-2026-12pm-et",
+  "tau_min": 13.69,
+  "spot": 1.0236,
+  "open": 1.0248,
+  "status": "open",
+  "reason": "Modell 39% für Up, Markt verlangt 0.31, Vorteil nach Gebühr 6.6 Cent"
  }
 ]
