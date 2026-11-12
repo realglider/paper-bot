@@ -266,8 +266,11 @@
   "tau_min": 41.29,
   "spot": 654.52,
   "open": 656.68,
-  "status": "open",
-  "reason": "Modell 26% für Up, Markt verlangt 0.20, Vorteil nach Gebühr 5.3 Cent"
+  "status": "settled",
+  "reason": "Modell 26% für Up, Markt verlangt 0.20, Vorteil nach Gebühr 5.3 Cent",
+  "result": "Down",
+  "win": false,
+  "pnl": -10.56
  },
  {
   "side": "Down",
@@ -284,8 +287,11 @@
   "tau_min": 34.04,
   "spot": 2020.34,
   "open": 2016.88,
-  "status": "open",
-  "reason": "Modell 40% für Down, Markt verlangt 0.30, Vorteil nach Gebühr 8.8 Cent"
+  "status": "settled",
+  "reason": "Modell 40% für Down, Markt verlangt 0.30, Vorteil nach Gebühr 8.8 Cent",
+  "result": "Down",
+  "win": true,
+  "pnl": 22.6149
  },
  {
   "side": "Down",
@@ -302,8 +308,11 @@
   "tau_min": 26.29,
   "spot": 72035.6,
   "open": 71906.98,
-  "status": "open",
-  "reason": "Modell 34% für Down, Markt verlangt 0.26, Vorteil nach Gebühr 6.9 Cent"
+  "status": "settled",
+  "reason": "Modell 34% für Down, Markt verlangt 0.26, Vorteil nach Gebühr 6.9 Cent",
+  "result": "Down",
+  "win": true,
+  "pnl": 27.6082
  },
  {
   "side": "Down",
@@ -320,8 +329,11 @@
   "tau_min": 26.23,
   "spot": 81.95,
   "open": 81.66,
-  "status": "open",
-  "reason": "Modell 27% für Down, Markt verlangt 0.16, Vorteil nach Gebühr 10.0 Cent"
+  "status": "settled",
+  "reason": "Modell 27% für Down, Markt verlangt 0.16, Vorteil nach Gebühr 10.0 Cent",
+  "result": "Down",
+  "win": true,
+  "pnl": 51.4967
  },
  {
   "side": "Down",
@@ -338,7 +350,10 @@
   "tau_min": 25.02,
   "spot": 1.0335,
   "open": 1.0304,
-  "status": "open",
-  "reason": "Modell 29% für Down, Markt verlangt 0.22, Vorteil nach Gebühr 5.9 Cent"
+  "status": "settled",
+  "reason": "Modell 29% für Down, Markt verlangt 0.22, Vorteil nach Gebühr 5.9 Cent",
+  "result": "Down",
+  "win": true,
+  "pnl": 34.5595
  }
 ]
