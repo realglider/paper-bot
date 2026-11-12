@@ -1,5 +1,5 @@
 {
- "updated": "2026-11-12T10:22:18Z",
+ "updated": "2026-11-12T10:27:14Z",
  "config": {
   "stake": 10.0,
   "min_edge": 0.05,
@@ -16,7 +16,7 @@
   "fees": 0,
   "roi": null,
   "bankroll": 1000.0,
-  "observations": 1,
+  "observations": 5,
   "rounds": 0,
   "brier_model": null,
   "brier_market": null
@@ -27,17 +27,17 @@
   "market": []
  },
  "latest": {
-  "ts": "2026-11-12T10:22:16Z",
+  "ts": "2026-11-12T10:27:12Z",
   "round_start": "2026-11-12T10:00:00Z",
-  "tau_min": "37.73",
-  "spot": "73534.67",
+  "tau_min": "32.79",
+  "spot": "73596.0",
   "open": "73496.29",
-  "sigma_min": "0.000339247",
-  "p_model": "0.5989",
-  "up_bid": "0.61",
-  "up_ask": "0.62",
-  "down_bid": "0.38",
-  "down_ask": "0.39"
+  "sigma_min": "0.000341133",
+  "p_model": "0.7562",
+  "up_bid": "0.75",
+  "up_ask": "0.76",
+  "down_bid": "0.24",
+  "down_ask": "0.25"
  },
  "trades": [],
  "errors": [],
