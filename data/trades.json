@@ -268,5 +268,23 @@
   "open": 656.68,
   "status": "open",
   "reason": "Modell 26% für Up, Markt verlangt 0.20, Vorteil nach Gebühr 5.3 Cent"
+ },
+ {
+  "side": "Down",
+  "price": 0.3,
+  "shares": 33,
+  "fee": 0.4851,
+  "cost": 10.3851,
+  "p_model": 0.4031,
+  "edge": 0.0884,
+  "coin": "ETH",
+  "ts": "2026-11-12T18:25:57Z",
+  "round_start": "2026-11-12T18:00:00Z",
+  "slug": "ethereum-up-or-down-november-12-2026-1pm-et",
+  "tau_min": 34.04,
+  "spot": 2020.34,
+  "open": 2016.88,
+  "status": "open",
+  "reason": "Modell 40% für Down, Markt verlangt 0.30, Vorteil nach Gebühr 8.8 Cent"
  }
 ]
