@@ -3,5 +3,35 @@
   "open": 73496.29,
   "close": 73463.52,
   "result": "Down"
+ },
+ "BNB|2026-11-12T14:00:00Z": {
+  "open": 655.93,
+  "close": 653.3,
+  "result": "Down"
+ },
+ "BTC|2026-11-12T14:00:00Z": {
+  "open": 72503.34,
+  "close": 71646.0,
+  "result": "Down"
+ },
+ "DOGE|2026-11-12T14:00:00Z": {
+  "open": 0.06557,
+  "close": 0.0651,
+  "result": "Down"
+ },
+ "ETH|2026-11-12T14:00:00Z": {
+  "open": 2012.47,
+  "close": 2005.28,
+  "result": "Down"
+ },
+ "SOL|2026-11-12T14:00:00Z": {
+  "open": 81.42,
+  "close": 81.23,
+  "result": "Down"
+ },
+ "XRP|2026-11-12T14:00:00Z": {
+  "open": 1.0335,
+  "close": 1.0265,
+  "result": "Down"
  }
 }

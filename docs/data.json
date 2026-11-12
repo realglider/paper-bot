@@ -1,191 +1,243 @@
 {
- "updated": "2026-11-12T14:55:50Z",
+ "updated": "2026-11-12T15:00:58Z",
  "config": {
   "stake": 10.0,
   "min_edge": 0.05,
   "start_bankroll": 1000.0
  },
  "summary": {
-  "trades": 0,
-  "open": 3,
-  "wins": 0,
-  "win_rate": null,
-  "win_rate_ci": null,
-  "breakeven": null,
-  "pnl": 0,
-  "fees": 0,
-  "roi": null,
-  "bankroll": 1000.0,
-  "observations": 251,
-  "rounds": 1,
-  "brier_model": 0.4753,
-  "brier_market": 0.491
+  "trades": 3,
+  "open": 0,
+  "wins": 3,
+  "win_rate": 1.0,
+  "win_rate_ci": [
+   0.4385,
+   1.0
+  ],
+  "breakeven": 0.7388,
+  "pnl": 10.45,
+  "fees": 0.51,
+  "roi": 0.3536,
+  "bankroll": 1010.45,
+  "observations": 281,
+  "rounds": 7,
+  "brier_model": 0.0654,
+  "brier_market": 0.0749
  },
  "coins": [
   {
    "coin": "BTC",
+   "obs": 51,
+   "rounds": 2,
+   "trades": 1,
+   "wins": 1,
+   "pnl": 6.85,
+   "brier_model": 0.0796,
+   "brier_market": 0.1134,
+   "avg_spread": 0.0113,
+   "avg_gap": 0.101,
+   "latest": {
+    "coin": "BTC",
+    "ts": "2026-11-12T15:00:43Z",
+    "round_start": "2026-11-12T15:00:00Z",
+    "tau_min": "59.27",
+    "spot": "71591.5",
+    "open": "71646.01",
+    "sigma_min": "0.000892431",
+    "p_model": "0.4559",
+    "up_bid": "0.51",
+    "up_ask": "0.52",
+    "down_bid": "0.48",
+    "down_ask": "0.49"
+   }
+  },
+  {
+   "coin": "ETH",
+   "obs": 46,
+   "rounds": 1,
+   "trades": 1,
+   "wins": 1,
+   "pnl": 2.15,
+   "brier_model": 0.0719,
+   "brier_market": 0.0827,
+   "avg_spread": 0.0129,
+   "avg_gap": 0.0367,
+   "latest": {
+    "coin": "ETH",
+    "ts": "2026-11-12T15:00:45Z",
+    "round_start": "2026-11-12T15:00:00Z",
+    "tau_min": "59.24",
+    "spot": "2002.53",
+    "open": "2005.27",
+    "sigma_min": "0.00148745",
+    "p_model": "0.4525",
+    "up_bid": "0.45",
+    "up_ask": "0.47",
+    "down_bid": "0.54",
+    "down_ask": "0.55"
+   }
+  },
+  {
+   "coin": "SOL",
+   "obs": 46,
+   "rounds": 1,
+   "trades": 1,
+   "wins": 1,
+   "pnl": 1.45,
+   "brier_model": 0.0956,
+   "brier_market": 0.1024,
+   "avg_spread": 0.0393,
+   "avg_gap": 0.0441,
+   "latest": {
+    "coin": "SOL",
+    "ts": "2026-11-12T15:00:47Z",
+    "round_start": "2026-11-12T15:00:00Z",
+    "tau_min": "59.21",
+    "spot": "81.1",
+    "open": "81.22",
+    "sigma_min": "0.0012582",
+    "p_model": "0.4393",
+    "up_bid": "0.41",
+    "up_ask": "0.43",
+    "down_bid": "0.58",
+    "down_ask": "0.59"
+   }
+  },
+  {
+   "coin": "XRP",
    "obs": 46,
    "rounds": 1,
    "trades": 0,
    "wins": 0,
    "pnl": 0,
-   "brier_model": 0.4753,
-   "brier_market": 0.491,
-   "avg_spread": 0.0114,
-   "avg_gap": 0.1021,
-   "latest": {
-    "coin": "BTC",
-    "ts": "2026-11-12T14:55:40Z",
-    "round_start": "2026-11-12T14:00:00Z",
-    "tau_min": "4.33",
-    "spot": "71471.7",
-    "open": "72503.34",
-    "sigma_min": "0.000884016",
-    "p_model": "0.01",
-    "up_bid": "",
-    "up_ask": "0.001",
-    "down_bid": "0.999",
-    "down_ask": ""
-   }
-  },
-  {
-   "coin": "ETH",
-   "obs": 41,
-   "rounds": 0,
-   "trades": 0,
-   "wins": 0,
-   "pnl": 0,
-   "brier_model": null,
-   "brier_market": null,
-   "avg_spread": 0.0124,
-   "avg_gap": 0.0396,
-   "latest": {
-    "coin": "ETH",
-    "ts": "2026-11-12T14:55:42Z",
-    "round_start": "2026-11-12T14:00:00Z",
-    "tau_min": "4.3",
-    "spot": "2000.67",
-    "open": "2012.47",
-    "sigma_min": "0.0014811",
-    "p_model": "0.0277",
-    "up_bid": "0.04",
-    "up_ask": "0.05",
-    "down_bid": "0.95",
-    "down_ask": "0.96"
-   }
-  },
-  {
-   "coin": "SOL",
-   "obs": 41,
-   "rounds": 0,
-   "trades": 0,
-   "wins": 0,
-   "pnl": 0,
-   "brier_model": null,
-   "brier_market": null,
-   "avg_spread": 0.04,
-   "avg_gap": 0.0471,
-   "latest": {
-    "coin": "SOL",
-    "ts": "2026-11-12T14:55:43Z",
-    "round_start": "2026-11-12T14:00:00Z",
-    "tau_min": "4.27",
-    "spot": "81.07",
-    "open": "81.42",
-    "sigma_min": "0.00125156",
-    "p_model": "0.0479",
-    "up_bid": "0.05",
-    "up_ask": "0.11",
-    "down_bid": "0.89",
-    "down_ask": "0.95"
-   }
-  },
-  {
-   "coin": "XRP",
-   "obs": 41,
-   "rounds": 0,
-   "trades": 0,
-   "wins": 0,
-   "pnl": 0,
-   "brier_model": null,
-   "brier_market": null,
-   "avg_spread": 0.026,
-   "avg_gap": 0.0324,
+   "brier_model": 0.0361,
+   "brier_market": 0.0451,
+   "avg_spread": 0.0259,
+   "avg_gap": 0.0317,
    "latest": {
     "coin": "XRP",
-    "ts": "2026-11-12T14:55:45Z",
-    "round_start": "2026-11-12T14:00:00Z",
-    "tau_min": "4.24",
-    "spot": "1.025",
-    "open": "1.0335",
-    "sigma_min": "0.00128879",
-    "p_model": "0.01",
-    "up_bid": "",
-    "up_ask": "0.02",
-    "down_bid": "0.98",
-    "down_ask": ""
+    "ts": "2026-11-12T15:00:48Z",
+    "round_start": "2026-11-12T15:00:00Z",
+    "tau_min": "59.19",
+    "spot": "1.0248",
+    "open": "1.0265",
+    "sigma_min": "0.00128974",
+    "p_model": "0.4337",
+    "up_bid": "0.42",
+    "up_ask": "0.44",
+    "down_bid": "0.56",
+    "down_ask": "0.58"
    }
   },
   {
    "coin": "DOGE",
-   "obs": 41,
-   "rounds": 0,
+   "obs": 46,
+   "rounds": 1,
    "trades": 0,
    "wins": 0,
    "pnl": 0,
-   "brier_model": null,
-   "brier_market": null,
-   "avg_spread": 0.1087,
-   "avg_gap": 0.0199,
+   "brier_model": 0.0489,
+   "brier_market": 0.0455,
+   "avg_spread": 0.1035,
+   "avg_gap": 0.0188,
    "latest": {
     "coin": "DOGE",
-    "ts": "2026-11-12T14:55:47Z",
-    "round_start": "2026-11-12T14:00:00Z",
-    "tau_min": "4.21",
-    "spot": "0.06497",
-    "open": "0.06557",
-    "sigma_min": "0.00146494",
-    "p_model": "0.01",
-    "up_bid": "",
-    "up_ask": "0.01",
-    "down_bid": "0.99",
-    "down_ask": ""
+    "ts": "2026-11-12T15:00:50Z",
+    "round_start": "2026-11-12T15:00:00Z",
+    "tau_min": "59.16",
+    "spot": "0.06498",
+    "open": "0.06509",
+    "sigma_min": "0.00147101",
+    "p_model": "0.4406",
+    "up_bid": "0.4",
+    "up_ask": "0.49",
+    "down_bid": "0.51",
+    "down_ask": "0.6"
    }
   },
   {
    "coin": "BNB",
-   "obs": 41,
-   "rounds": 0,
+   "obs": 46,
+   "rounds": 1,
    "trades": 0,
    "wins": 0,
    "pnl": 0,
-   "brier_model": null,
-   "brier_market": null,
-   "avg_spread": 0.0746,
-   "avg_gap": 0.0208,
+   "brier_model": 0.0583,
+   "brier_market": 0.0611,
+   "avg_spread": 0.0687,
+   "avg_gap": 0.0205,
    "latest": {
     "coin": "BNB",
-    "ts": "2026-11-12T14:55:48Z",
-    "round_start": "2026-11-12T14:00:00Z",
-    "tau_min": "4.19",
-    "spot": "651.92",
-    "open": "655.93",
-    "sigma_min": "0.000948306",
-    "p_model": "0.01",
-    "up_bid": "",
-    "up_ask": "0.02",
-    "down_bid": "0.98",
-    "down_ask": ""
+    "ts": "2026-11-12T15:00:52Z",
+    "round_start": "2026-11-12T15:00:00Z",
+    "tau_min": "59.13",
+    "spot": "652.73",
+    "open": "653.31",
+    "sigma_min": "0.000952824",
+    "p_model": "0.4518",
+    "up_bid": "0.5",
+    "up_ask": "0.52",
+    "down_bid": "0.48",
+    "down_ask": "0.5"
    }
   }
  ],
- "equity": [],
+ "equity": [
+  {
+   "ts": "2026-11-12T14:14:47Z",
+   "pnl": 6.85
+  },
+  {
+   "ts": "2026-11-12T14:22:10Z",
+   "pnl": 9.0
+  },
+  {
+   "ts": "2026-11-12T14:23:22Z",
+   "pnl": 10.45
+  }
+ ],
  "calibration": {
   "model": [
    {
+    "mid": 0.05,
+    "n": 103,
+    "pred": 0.0508,
+    "actual": 0.0
+   },
+   {
+    "mid": 0.15,
+    "n": 66,
+    "pred": 0.143,
+    "actual": 0.0
+   },
+   {
+    "mid": 0.25,
+    "n": 23,
+    "pred": 0.2441,
+    "actual": 0.0
+   },
+   {
+    "mid": 0.35,
+    "n": 19,
+    "pred": 0.3478,
+    "actual": 0.0
+   },
+   {
+    "mid": 0.45,
+    "n": 16,
+    "pred": 0.4279,
+    "actual": 0.0
+   },
+   {
     "mid": 0.55,
-    "n": 2,
-    "pred": 0.5981,
+    "n": 12,
+    "pred": 0.5535,
+    "actual": 0.0
+   },
+   {
+    "mid": 0.65,
+    "n": 6,
+    "pred": 0.6439,
     "actual": 0.0
    },
    {
@@ -197,9 +249,45 @@
   ],
   "market": [
    {
+    "mid": 0.05,
+    "n": 57,
+    "pred": 0.0595,
+    "actual": 0.0
+   },
+   {
+    "mid": 0.15,
+    "n": 87,
+    "pred": 0.1522,
+    "actual": 0.0
+   },
+   {
+    "mid": 0.25,
+    "n": 39,
+    "pred": 0.2371,
+    "actual": 0.0
+   },
+   {
+    "mid": 0.35,
+    "n": 27,
+    "pred": 0.3446,
+    "actual": 0.0
+   },
+   {
+    "mid": 0.45,
+    "n": 17,
+    "pred": 0.4329,
+    "actual": 0.0
+   },
+   {
+    "mid": 0.55,
+    "n": 13,
+    "pred": 0.55,
+    "actual": 0.0
+   },
+   {
     "mid": 0.65,
-    "n": 2,
-    "pred": 0.61,
+    "n": 5,
+    "pred": 0.621,
     "actual": 0.0
    },
    {
@@ -226,8 +314,11 @@
    "tau_min": 36.63,
    "spot": 80.6,
    "open": 81.42,
-   "status": "open",
-   "reason": "Modell 93% für Down, Markt verlangt 0.86, Vorteil nach Gebühr 6.2 Cent"
+   "status": "settled",
+   "reason": "Modell 93% für Down, Markt verlangt 0.86, Vorteil nach Gebühr 6.2 Cent",
+   "result": "Down",
+   "win": true,
+   "pnl": 1.4473
   },
   {
    "side": "Down",
@@ -244,8 +335,11 @@
    "tau_min": 37.83,
    "spot": 1993.32,
    "open": 2012.47,
-   "status": "open",
-   "reason": "Modell 88% für Down, Markt verlangt 0.81, Vorteil nach Gebühr 6.0 Cent"
+   "status": "settled",
+   "reason": "Modell 88% für Down, Markt verlangt 0.81, Vorteil nach Gebühr 6.0 Cent",
+   "result": "Down",
+   "win": true,
+   "pnl": 2.1507
   },
   {
    "side": "Down",
@@ -262,8 +356,11 @@
    "tau_min": 45.2,
    "spot": 72367.51,
    "open": 72503.34,
-   "status": "open",
-   "reason": "Modell 65% für Down, Markt verlangt 0.58, Vorteil nach Gebühr 5.1 Cent"
+   "status": "settled",
+   "reason": "Modell 65% für Down, Markt verlangt 0.58, Vorteil nach Gebühr 5.1 Cent",
+   "result": "Down",
+   "win": true,
+   "pnl": 6.8501
   }
  ],
  "errors": [],
