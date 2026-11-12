@@ -202,5 +202,23 @@
   "open": 71754.97,
   "status": "open",
   "reason": "Modell 38% für Down, Markt verlangt 0.31, Vorteil nach Gebühr 5.8 Cent"
+ },
+ {
+  "side": "Down",
+  "price": 0.33,
+  "shares": 30,
+  "fee": 0.4643,
+  "cost": 10.3643,
+  "p_model": 0.3987,
+  "edge": 0.0532,
+  "coin": "SOL",
+  "ts": "2026-11-12T17:28:59Z",
+  "round_start": "2026-11-12T17:00:00Z",
+  "slug": "solana-up-or-down-november-12-2026-12pm-et",
+  "tau_min": 31.01,
+  "spot": 81.56,
+  "open": 81.42,
+  "status": "open",
+  "reason": "Modell 40% für Down, Markt verlangt 0.33, Vorteil nach Gebühr 5.3 Cent"
  }
 ]
