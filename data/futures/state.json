@@ -1,11 +1,11 @@
 {
- "cash": 1000.0,
+ "cash": 500.0,
  "positions": {},
  "blocked": {},
  "last_eval": 1794510000000,
  "fees": 0.0,
  "funding": 0.0,
- "started": "2026-11-12T19:19:08Z",
+ "started": "2026-11-12T19:50:01Z",
  "watch": {
   "XBT": {
    "close": 71728.0,

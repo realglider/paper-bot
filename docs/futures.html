@@ -53,9 +53,9 @@ footer{color:var(--mute);font-size:12px;margin-top:18px}
 </head>
 <body>
 <main>
-  <nav><a href="futures.html" class="on">KuCoin Futures</a><a href="polymarket.html">Polymarket (beendet)</a></nav>
+  <nav><a href="index.html">Übersicht</a><a href="futures.html" class="on">Futures-Teil</a><a href="spot.html">Spot-Teil</a><a href="polymarket.html">Polymarket (beendet)</a></nav>
   <header>
-    <h1>Paper-Bot · KuCoin Futures</h1>
+    <h1>Paper-Bot · Futures-Teil</h1>
     <span class="tag" id="updated">lädt …</span>
   </header>
   <p class="sub" id="sub">Scheinkonto ohne echtes Geld.</p>
@@ -151,7 +151,7 @@ function render(d) {
   const u = $("updated");
   u.textContent = (age > 30 ? "veraltet · " : "") + "Stand " + when(d.updated);
   u.className = "tag" + (age > 30 ? " stale" : "");
-  $("sub").textContent = `Scheinkonto mit ${usd(c.start)} seit ${when(d.started)}. Trendfolge auf ${c.coins.length} KuCoin-USDT-Perpetuals, long und short.`;
+  $("sub").textContent = `Futures-Konto mit ${usd(c.start)} seit ${when(d.started)}, die Hälfte des Gesamtkapitals. Trendfolge auf ${c.coins.length} KuCoin-USDT-Perpetuals, long und short.`;
 
   const box = $("verdict"); let cls = "", head, text;
   if (s.liquidated) { cls = "neg"; head = "Konto liquidiert"; text = "Der Bot hat am " + when(s.liquidated) + " alle Positionen zwangsweise geschlossen und handelt nicht weiter."; }
@@ -194,15 +194,15 @@ function render(d) {
   r.append(
     li("Einstieg:", c.strategy === "donchian" ? `Schlusskurs der Stundenkerze über dem Hoch (long) oder unter dem Tief (short) der letzten ${c.n / 24} Tage.` : "Schneller Durchschnitt kreuzt den langsamen."),
     li("Ausstieg:", c.strategy === "donchian" ? `Gegenkanal der letzten ${c.exit / 24} Tage oder Stop bei ${c.stop_atr} × Stunden-ATR (rund 2,5 Tagesspannen), der im Gewinn nachgezogen wird.` : `Gegensignal oder Stop bei ${c.stop_atr} × ATR.`),
-    li("Größe:", `Mindestens ${usd(c.min_notional)} je Position. Ziel ist, dass ein Stop ${pct(c.risk, 1)} des Kontos kostet. Würde schon die Mindestgröße mehr als ${pct(c.max_risk, 0)} riskieren, lässt der Bot den Trade aus. 1 R ist der Verlust am ersten Stop.`),
-    li("Hebel:", `Eine Position höchstens ${c.max_pos}× Konto, alle zusammen höchstens ${c.max_gross}×. Eingestellt wäre ${c.account_leverage}×, das bestimmt nur die hinterlegte Margin.`)
+    li("Größe:", `Mindestens ${usd(c.min_notional)} je Position. Ziel ist, dass ein Stop ${pct(c.risk, 0)} des Futures-Kontos kostet. Würde schon die Mindestgröße mehr als ${pct(c.max_risk, 0)} riskieren, lässt der Bot den Trade aus. 1 R ist der Verlust am ersten Stop.`),
+    li("Hebel:", `Alle Positionen zusammen höchstens ${c.max_gross}× Futures-Konto, das sind ${c.max_gross / 2}× das Gesamtkapital. Erlaubt wären ${c.account_leverage}×.`)
   );
 
   const b = c.backtest, bt = $("backtest"); bt.replaceChildren();
   const day = s => new Date(s).toLocaleDateString("de-DE", {month: "2-digit", year: "numeric"});
   bt.append(
     li("Zeitraum:", `${day(b.from)} bis ${day(b.to)}, ${c.coins.length} Coins, ${b.trades} Trades, mit Gebühren, Slippage und Funding.`),
-    li("Ergebnis:", `${pct(b.cagr, 0)} pro Jahr bei einem größten Rückgang von ${pct(b.max_dd, 0)}. Nur ${pct(b.win_rate, 0)} der Trades waren Gewinner.`),
+    li("Ergebnis:", `${pct(b.cagr, 0)} pro Jahr auf das Futures-Konto bei einem größten Rückgang von ${pct(b.max_dd, 0)}. Nur ${pct(b.win_rate, 0)} der Trades waren Gewinner.`),
     li("Ungleich verteilt:", `Erste 15 Monate ${pct(b.cagr_first, 0)} pro Jahr, letzte 12 Monate ${pct(b.cagr_last, 0)}. ${b.months_up} von ${b.months} Monaten im Plus, die fünf besten Trades brachten ${pct(b.top5_share, 0)} des Gewinns.`),
     li("Einordnung:", "27 Monate sind wenig, und Stop-Weite sowie Größenregel wurden an denselben Daten gewählt. Der Rücktest ist deshalb eher zu günstig. Schnellere Varianten und Gegentrend-Strategien haben im selben Test Geld verloren.")
   );

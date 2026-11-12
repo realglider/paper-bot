@@ -25,7 +25,7 @@ import urllib.request
 # ----------------------------------------------------------------------------
 # Einstellungen
 # ----------------------------------------------------------------------------
-START_EQUITY = 1000.0
+START_EQUITY = 500.0      # USDT im Futures-Konto (die andere Haelfte liegt im Spot-Konto)
 COINS = ["XBT", "ETH", "SOL", "XRP", "DOGE", "BNB", "ADA", "LINK",
          "AVAX", "LTC", "BCH", "DOT", "NEAR", "AAVE", "UNI", "TRX"]
 
@@ -37,11 +37,11 @@ ATR_N = 96                # ATR der Stundenkerzen, geglaettet ueber 4 Tage
 STOP_ATR = 12.0           # Stop = 12 x Stunden-ATR (rund 2,5 Tagesspannen), wird nachgezogen
 SIDES = "both"            # "both", "long" oder "short"
 
-RISK_PER_TRADE = 0.005    # Zielgroesse: 0,5 % des Kontos gehen verloren, wenn der Stop greift
+RISK_PER_TRADE = 0.01     # Zielgroesse: 1 % des Futures-Kontos (0,5 % vom Gesamtkapital) am Stop
 MIN_NOTIONAL = 100.0      # jede Position ist mindestens 100 USDT gross ...
-MAX_RISK_PER_TRADE = 0.01 # ... und wird ausgelassen, wenn sie damit mehr als 1 % riskieren wuerde
-MAX_POS_LEVERAGE = 1.5    # eine Position hoechstens 1,5 x Konto
-MAX_GROSS_LEVERAGE = 3.0  # alle Positionen zusammen hoechstens 3 x Konto
+MAX_RISK_PER_TRADE = 0.02 # ... und wird ausgelassen, wenn sie mehr als 2 % (1 % gesamt) riskieren wuerde
+MAX_POS_LEVERAGE = 3.0    # eine Position hoechstens 3 x Futures-Konto
+MAX_GROSS_LEVERAGE = 6.0  # alle Positionen zusammen hoechstens 6 x Futures-Konto (3 x gesamt)
 ACCOUNT_LEVERAGE = 10     # eingestellter Hebel (Obergrenze, bestimmt nur die Margin)
 
 TAKER_FEE = 0.0006        # 0,06 % je Seite
@@ -50,10 +50,10 @@ MAINT_MARGIN = 0.01       # Zwangsliquidation, wenn Konto < 1 % des Positionswer
 
 # Ergebnis des Ruecktests dieser Einstellungen (kucoin/research/, KuCoin-Stundenkerzen,
 # 16 Coins, 05.08.2024 bis 12.11.2026, mit Gebuehr, Slippage und Funding).
-BACKTEST = {"from": "2024-08-05", "to": "2026-11-12", "cagr": 0.139, "max_dd": -0.105,
-            "trades": 131, "win_rate": 0.41, "pf_first": 1.33, "pf_last": 1.77,
-            "cagr_first": 0.018, "cagr_last": 0.249, "months_up": 13, "months": 27,
-            "top5_share": 0.64}
+BACKTEST = {"from": "2024-08-05", "to": "2026-11-12", "cagr": 0.227, "max_dd": -0.24,
+            "trades": 140, "win_rate": 0.39, "pf_first": 1.46, "pf_last": 1.65,
+            "cagr_first": 0.057, "cagr_last": 0.525, "months_up": 13, "months": 27,
+            "top5_share": 0.81}
 
 API = "https://api-futures.kucoin.com"
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))

@@ -21,23 +21,23 @@ class T(unittest.TestCase):
         self.assertAlmostEqual(f.ema_last([5.0] * 50, 10), 5.0)
 
     def test_position_size(self):
-        # 1000 $ Konto, Stop 5 % entfernt: 0,5 % Risiko waeren 100 $ Positionswert
-        lots, notional = f.position_size(1000, 100, 5, 0, 0.1)
+        # 500 $ Futures-Konto, Stop 5 % entfernt: 1 % Risiko = 5 $ -> 100 $ Positionswert
+        lots, notional = f.position_size(500, 100, 5, 0, 0.1)
         self.assertEqual(lots, 10)
         self.assertAlmostEqual(notional, 100)
-        # Stop 8 % entfernt: Zielgroesse 62,50 $ -> auf 100 $ angehoben (Risiko 0,8 %)
-        lots, notional = f.position_size(1000, 100, 8, 0, 0.1)
-        self.assertAlmostEqual(notional, 100)
-        # Stop 12 % entfernt: 100 $ wuerden 1,2 % riskieren -> kein Trade
-        self.assertEqual(f.position_size(1000, 100, 12, 0, 0.1), (0, 0.0))
-        # enger Stop: groesser als die Mindestgroesse, Deckel bei 1,5 x Konto
-        self.assertAlmostEqual(f.position_size(1000, 100, 2, 0, 0.1)[1], 250)
-        self.assertAlmostEqual(f.position_size(1000, 100, 0.1, 0, 0.1)[1], 1500)
-        # Gesamtdeckel 3 x Konto
-        self.assertAlmostEqual(f.position_size(1000, 100, 0.1, 2800, 0.1)[1], 200)
-        self.assertEqual(f.position_size(1000, 100, 5, 2950, 0.1), (0, 0.0))
+        # Stop 8 % entfernt: Zielgroesse 62,50 $ -> auf 100 $ angehoben (Risiko 8 $)
+        self.assertAlmostEqual(f.position_size(500, 100, 8, 0, 0.1)[1], 100)
+        # Stop 12 % entfernt: 100 $ wuerden 12 $ riskieren, erlaubt sind 10 $ -> kein Trade
+        self.assertEqual(f.position_size(500, 100, 12, 0, 0.1), (0, 0.0))
+        # enger Stop: groesser als die Mindestgroesse, Deckel je Position
+        self.assertAlmostEqual(f.position_size(500, 100, 2, 0, 0.1)[1], 250)
+        self.assertAlmostEqual(f.position_size(500, 100, 0.1, 0, 0.1)[1], 500 * f.MAX_POS_LEVERAGE)
+        # Gesamtdeckel
+        cap = 500 * f.MAX_GROSS_LEVERAGE
+        self.assertAlmostEqual(f.position_size(500, 100, 0.1, cap - 200, 0.1)[1], 200)
+        self.assertEqual(f.position_size(500, 100, 5, cap - 50, 0.1), (0, 0.0))
         # grobe Kontrakte: BTC 0,001 je Lot bei 70.000 -> 2 Lots = 140 $
-        lots, notional = f.position_size(1000, 70000, 2800, 0, 0.001)
+        lots, notional = f.position_size(500, 70000, 2800, 0, 0.001)
         self.assertEqual(lots, 2)
         self.assertAlmostEqual(notional, 140)
 
@@ -77,13 +77,13 @@ class T(unittest.TestCase):
     def test_account_roundtrip(self):
         acc = f.Account({}, [], 1_000_000)
         acc.open("XBT", 1, 2, 0.001, 70000.0, 67900.0, 700.0, "Test")
-        self.assertAlmostEqual(acc.s["cash"], 1000 - 140 * f.TAKER_FEE)
+        self.assertAlmostEqual(acc.s["cash"], f.START_EQUITY - 140 * f.TAKER_FEE)
         acc.marks["XBT"] = 71000.0
-        self.assertAlmostEqual(acc.equity(), 1000 - 140 * f.TAKER_FEE + 2.0)
+        self.assertAlmostEqual(acc.equity(), f.START_EQUITY - 140 * f.TAKER_FEE + 2.0)
         self.assertAlmostEqual(acc.gross(), 142.0)
         net = acc.close("XBT", 71000.0, 2_000_000, "Test")
         self.assertAlmostEqual(net, 2.0 - 140 * f.TAKER_FEE - 142 * f.TAKER_FEE)
-        self.assertAlmostEqual(acc.equity(), 1000 + net)
+        self.assertAlmostEqual(acc.equity(), f.START_EQUITY + net)
         self.assertEqual(acc.trades[0]["side"], "long")
         self.assertAlmostEqual(acc.trades[0]["r"], round(net / 4.2, 2))
 

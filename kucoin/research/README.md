@@ -1,20 +1,18 @@
 # Rücktest
 
-Der laufende Bot handelt Futures. `spot.py` ist eine verworfene Spot-Variante, `ideas.py` testet Bitcoin-Trendfilter und die Mindestgröße von 100 USDT. Als Kursdaten dienen in allen Tests die KuCoin-Perpetual-Kerzen, die dem Spotkurs sehr eng folgen.
+Skripte, mit denen die Regeln des Bots ausgewählt wurden. Brauchen `numpy` und `pandas`. Die Kursdaten liegen nicht im Repository, die `dl*.py`-Skripte laden sie von KuCoin.
 
-Skripte, mit denen die Strategie des Futures-Bots ausgewählt wurde. Brauchen `numpy` und `pandas`.
+| Skript | Inhalt |
+|---|---|
+| `dl.py`, `dl2.py` | Stundenkerzen und Funding für 45 Perpetuals |
+| `dl_fut.py`, `dl_spot.py` | Tageskerzen aller seit 08/2024 gelisteten Perpetuals und aller Spot-USDT-Paare |
+| `bt.py` | Rücktest-Kern für die Futures-Strategien |
+| `grid.py`, `grid2.py`, `final.py`, `uni.py`, `ideas.py` | Strategievergleich, Nachbarschaft, Universum, Mindestgröße (Futures-Teil) |
+| `tv.py` | Nachbau bekannter TradingView-Strategien |
+| `listings.py` | Kursverlauf nach neuen Listings (`python3 listings.py fut` bzw. `spot`) |
+| `spotmom.py`, `spotmom2.py`, `spotmom3.py` | Spot-Momentum über den ganzen Markt, Robustheit, gewählte Variante |
+| `spot.py` | verworfene Spot-Trendfolge auf 16 Coins |
 
-```
-python3 dl.py      # Stundenkerzen und Funding von KuCoin laden (ca. 40 Minuten)
-python3 grid.py    # erster Vergleich, enge Stops: alles im Minus oder instabil
-python3 grid2.py   # zweiter Vergleich, Stops in Tagesspannen
-python3 final.py   # Nachbarschaft, Kosten, je Coin und Monatsrenditen der Futures-Variante
-python3 spot.py    # Spot-Variante: nur long, kein Hebel (verworfen)
-python3 ideas.py   # Bitcoin-Trendfilter, Mindestgröße 100 USDT mit Risikodeckel (gewählt)
-```
+Kosten im Test: Futures 0,06 % Gebühr und 0,04 % Slippage je Seite plus echte Funding-Raten. Spot 0,1 % Gebühr und 0,3 % Slippage je Seite.
 
-Breiteres Universum (`dl2.py`, `uni.py`): Mit 29 weiteren liquiden Coins stieg die Rendite im Test von 15 % auf 22 % pro Jahr, der größte Rückgang aber von −19 % auf −43 %. Die 29 neuen Coins allein kamen nur auf einen Profit-Faktor von 1,06 bis 1,13. Der Bot bleibt deshalb bei 16 Coins.
-
-Kosten im Test: 0,06 % Taker-Gebühr und 0,04 % Slippage je Seite, dazu die echten Funding-Raten.
-
-Ehrliche Einordnung: KuCoin liefert Stundenkerzen nur bis August 2024 zurück, das sind 27 Monate und im Kern ein Marktzyklus. Die Coins sind die heute großen Namen, die es damals schon gab. Die Stop-Weite wurde nach dem ersten Durchlauf geändert, die Auswahl ist also nicht frei von Rückschau.
+Ehrliche Einordnung: KuCoin liefert Stundenkerzen nur bis August 2024 zurück, das sind 27 Monate und im Kern ein Marktzyklus. Die Spot-Daten enthalten nur heute noch handelbare Coins. Mehrere Stellschrauben wurden nach einem ersten Durchlauf geändert, die Auswahl ist also nicht frei von Rückschau.

@@ -1,20 +1,47 @@
 # paper-bot
 
-Paper-Trading-Bot für KuCoin-Futures, ohne Konto und ohne echte Orders. Dashboard: `docs/futures.html`
+Paper-Trading-Bot für KuCoin, ohne Konto und ohne echte Orders. Ein Scheinkonto mit 1.000 USDT, je zur Hälfte auf Futures und Spot verteilt. Übersicht: `docs/index.html`
 
-## KuCoin-Futures-Bot
+## Futures-Teil (`kucoin/futures_bot.py`)
 
-Trendfolge auf 16 USDT-Perpetuals mit 1.000 USDT Scheinkapital, long und short. Regeln (Einstellungen oben in `kucoin/futures_bot.py`):
+Trendfolge auf 16 großen USDT-Perpetuals, long und short, 500 USDT Futures-Konto.
 
 - **Einstieg:** Schlusskurs der Stundenkerze über dem 40-Tage-Hoch (long) oder unter dem 40-Tage-Tief (short).
-- **Ausstieg:** Gegenkanal der letzten 20 Tage oder Stop bei 12 × Stunden-ATR (rund 2,5 Tagesspannen). Der Stop wird im Gewinn nachgezogen und zwischen den Läufen mit Minutenkerzen nachgeprüft.
-- **Größe:** Mindestens 100 USDT je Position. Ziel ist, dass ein Stop 0,5 % des Kontos kostet. Würde schon die Mindestgröße mehr als 1 % riskieren, wird der Trade ausgelassen.
-- **Hebel:** Eine Position höchstens 1,5 × Konto, alle zusammen höchstens 3 ×. Erlaubt wären 10 ×.
-- **Kosten:** Kauf am Briefkurs, Verkauf am Geldkurs, 0,06 % Taker-Gebühr, 0,02 % Slippage, echte Funding-Raten.
+- **Ausstieg:** Gegenkanal der letzten 20 Tage oder Stop bei 12 × Stunden-ATR (rund 2,5 Tagesspannen), im Gewinn nachgezogen.
+- **Größe:** Mindestens 100 USDT je Position. Ziel sind 5 USDT Verlust am Stop. Würde die Mindestgröße mehr als 10 USDT (1 % des Gesamtkapitals) riskieren, wird der Trade ausgelassen.
+- **Hebel:** Alle Positionen zusammen höchstens 3.000 USDT, also 3 × Gesamtkapital. Erlaubt wären 10 ×.
+- **Kosten:** 0,06 % Taker-Gebühr, 0,02 % Slippage, echte Funding-Raten.
 
-Rücktest (`kucoin/research/`), August 2024 bis November 2026: etwa +14 % pro Jahr bei −10,5 % größtem Rückgang, 131 Trades, 41 % Gewinner, 13 von 27 Monaten im Plus. Die ersten 15 Monate brachten nur +2 % pro Jahr, die letzten 12 Monate +25 %. Der Zeitraum ist kurz und die Regeln wurden an denselben Daten gewählt, die Zahlen sind also eher zu günstig.
+## Spot-Teil (`kucoin/spot_bot.py`)
 
-Was sonst getestet wurde (`grid.py`, `grid2.py`, `uni.py`, `spot.py`, `ideas.py`): Gegentrend-Strategien und schnelle Trendfolge verloren Geld, Stark-gegen-Schwach lag um null, 29 zusätzliche Coins erhöhten vor allem den Rückgang, ein Bitcoin-Trendfilter brachte keinen messbaren Vorteil, und das Einsammeln der Funding-Rate lohnt bei den Raten von 2025/26 (im Schnitt 0 bis 2 % pro Jahr) nicht.
+Momentum-Scanner über den ganzen KuCoin-Spotmarkt, 500 USDT Spot-Konto, kein Hebel.
+
+- **Universum:** Alle USDT-Paare mit mindestens 1 Mio. USDT Tagesumsatz (Median 20 Tage) und 51 Tagen Historie. Neue Coins kommen von selbst dazu, sobald sie beides haben. Stablecoins und Hebel-Token sind ausgeschlossen.
+- **Kauf:** Tagesschluss über dem 20-Tage-Hoch, mindestens dreifacher Umsatz gegen den 20-Tage-Schnitt, über dem 50-Tage-Durchschnitt. Ausführung kurz nach Mitternacht UTC.
+- **Verkauf:** Stop 12 % unter dem Kaufkurs, nachgezogen auf 15 % unter dem höchsten Tagesschluss, oder Gewinnmitnahme bei +40 %.
+- **Größe:** 100 USDT je Coin, höchstens 5 gleichzeitig.
+- **Kosten:** 0,1 % Taker-Gebühr, 0,1 % Slippage.
+
+## Was der Rücktest sagt (`kucoin/research/`)
+
+August 2024 bis November 2026, beide Teile zusammen: aus 1.000 wurden rund 1.440 USDT, etwa +17 % pro Jahr bei −23 % größtem Rückgang, 10 von 27 Monaten im Plus.
+
+- Futures-Teil allein: +23 % pro Jahr auf 500 USDT, −24 % Rückgang, 140 Trades, 39 % Gewinner.
+- Spot-Teil allein: +12 % pro Jahr auf 500 USDT, −31 % Rückgang, 130 Trades, 33 % Gewinner. Mit 0,6 % statt 0,3 % Slippage je Seite wäre er negativ gewesen.
+
+Die Zahlen sind zu günstig: Der Zeitraum ist kurz, die Regeln wurden an denselben Daten gewählt, und der Spot-Test kennt keine inzwischen gelöschten Coins.
+
+Was sonst getestet und verworfen wurde:
+
+| Idee | Skript | Ergebnis |
+|---|---|---|
+| Gegentrend (RSI, Bollinger), schnelle Trendfolge | `grid.py` | Verlust |
+| Stark gegen Schwach, breiteres Futures-Universum | `grid2.py`, `uni.py` | um null bzw. mehr Rückgang |
+| TradingView-Klassiker (SuperTrend, UT Bot, Chandelier Exit, Squeeze Momentum, MACD) | `tv.py` | auf 4-Stunden-Kerzen instabil, auf Tageskerzen wie die Trendfolge |
+| Neue Listings kaufen | `listings.py` | Spot: nach 90 Tagen im Median −50 %, nur 22 % im Plus. Futures: −28 % |
+| Neue Futures-Listings leerverkaufen | `listings.py` | im Schnitt +3 % je Trade vor Funding, jeder vierte gestoppt, zu dünn |
+| Spot-Momentum mit kleinen Coins (unter 1 Mio. Umsatz) | `spotmom.py` | klarer Verlust |
+| Bitcoin-Trendfilter, Funding-Rate einsammeln | `ideas.py` | kein Vorteil bzw. 0 bis 2 % pro Jahr |
 
 Grenzen: Der Bot läuft etwa alle fünf Minuten. Stops werden zum Stop-Kurs abgerechnet (bei Kurslücken schlechter), in einem Absturz kann ein echter Stop weiter durchrutschen. Viele Coins fallen und steigen gemeinsam, mehrere Positionen sind dann praktisch eine große.
 
@@ -43,7 +70,7 @@ Kein Konto, kein Wallet, keine Orders: Der Bot liest nur öffentliche Daten und 
 | `data/trades.json` | Alle Scheintrades mit Begründung und Ergebnis |
 | `data/rounds.json` | Ergebnis jeder Runde |
 | `docs/` | Dashboards (GitHub Pages) |
-| `kucoin/futures_bot.py` | Futures-Scheinkonto, Daten in `data/futures/` |
+| `kucoin/futures_bot.py`, `kucoin/spot_bot.py` | Die beiden Teile, Daten in `data/futures/` und `data/spot/` |
 | `.github/workflows/bot.yml` | Je Lauf 5 Messungen im Minutentakt, danach startet der Lauf seinen Nachfolger |
 
 ## Annahmen und Grenzen

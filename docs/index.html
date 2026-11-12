@@ -1,1 +1,202 @@
-<!doctype html><meta charset="utf-8"><meta http-equiv="refresh" content="0; url=futures.html"><title>Paper-Bot</title><a href="futures.html">Weiter zum KuCoin-Futures-Bot</a>
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Paper-Bot · Übersicht</title>
+<style>
+:root{
+  --bg:#f4f2ec;--card:#fffdf8;--ink:#1c1b18;--mute:#6f6a5f;--line:#ddd8cb;
+  --pos:#1f6f4a;--neg:#a8402a;--warn:#8a6100;
+  --mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme:dark){:root{
+  --bg:#15161a;--card:#1d1f25;--ink:#ecebe6;--mute:#9a988f;--line:#30333c;
+  --pos:#5fc592;--neg:#ee8a70;--warn:#e2b84c;
+}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 system-ui,-apple-system,"Segoe UI",sans-serif}
+main{max-width:1040px;margin:0 auto;padding:20px 16px 48px}
+nav{display:flex;gap:6px;margin-bottom:14px;flex-wrap:wrap}
+nav a{font-size:13px;padding:5px 12px;border:1px solid var(--line);border-radius:999px;color:var(--mute);text-decoration:none}
+nav a.on{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+header{display:flex;flex-wrap:wrap;gap:8px 16px;align-items:baseline;justify-content:space-between;margin-bottom:6px}
+h1{font-size:20px;margin:0}
+h2{font-size:12px;margin:0 0 10px;color:var(--mute);text-transform:uppercase;letter-spacing:.09em;font-weight:600}
+.tag{font:12px var(--mono);border:1px solid var(--line);border-radius:999px;padding:2px 10px;color:var(--mute)}
+.tag.stale{color:var(--warn);border-color:var(--warn)}
+.sub{color:var(--mute);margin:0 0 18px;max-width:72ch}
+.card{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:16px;margin-bottom:14px}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-bottom:14px}
+.kpi{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:12px 14px}
+.kpi .l{font-size:12px;color:var(--mute)}
+.kpi .v{font:600 22px var(--mono);font-variant-numeric:tabular-nums;margin:2px 0;white-space:nowrap}
+.kpi .n{font-size:12px;color:var(--mute)}
+.pos{color:var(--pos)}.neg{color:var(--neg)}
+.parts{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px}
+@media (max-width:760px){.parts{grid-template-columns:1fr}}
+.part{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:16px;text-decoration:none;color:inherit;display:block}
+.part:hover{border-color:var(--mute)}
+.part .big{font:600 22px var(--mono);font-variant-numeric:tabular-nums;margin:2px 0 6px}
+.part p{margin:0;color:var(--mute);font-size:13px}
+.part .more{display:inline-block;margin-top:10px;font-size:13px;color:var(--ink);text-decoration:underline}
+svg{display:block;width:100%;height:auto}
+.scroll{overflow-x:auto}
+table{border-collapse:collapse;width:100%;font-size:13px;min-width:640px}
+th{text-align:left;color:var(--mute);font-weight:600;font-size:12px;border-bottom:1px solid var(--line);padding:6px 8px}
+td{padding:7px 8px;border-bottom:1px solid var(--line);vertical-align:top}
+td.num{font-family:var(--mono);font-variant-numeric:tabular-nums;white-space:nowrap}
+.empty{color:var(--mute);padding:18px 0;text-align:center}
+.rules{margin:0;padding-left:18px;color:var(--mute)}
+.rules li{margin:3px 0}
+.rules b{color:var(--ink);font-weight:600}
+footer{color:var(--mute);font-size:12px;margin-top:18px}
+</style>
+</head>
+<body>
+<main>
+  <nav><a href="index.html" class="on">Übersicht</a><a href="futures.html">Futures-Teil</a><a href="spot.html">Spot-Teil</a><a href="polymarket.html">Polymarket (beendet)</a></nav>
+  <header>
+    <h1>Paper-Bot · KuCoin Spot und Futures</h1>
+    <span class="tag" id="updated">lädt …</span>
+  </header>
+  <p class="sub">Ein Scheinkonto mit 1.000 USDT, je zur Hälfte auf Spot und Futures verteilt. Der Bot entscheidet selbst, was er wo handelt. Kein echtes Geld.</p>
+
+  <div class="kpis" id="kpis"></div>
+
+  <div class="card">
+    <h2>Gesamtkonto (USDT)</h2>
+    <div id="curve"></div>
+  </div>
+
+  <div class="parts">
+    <a class="part" href="futures.html" id="pf"><h2>Futures-Teil · Trendfolge mit Hebel</h2><div class="big">–</div><p></p><span class="more">Details</span></a>
+    <a class="part" href="spot.html" id="ps"><h2>Spot-Teil · Momentum-Scanner</h2><div class="big">–</div><p></p><span class="more">Details</span></a>
+  </div>
+
+  <div class="card">
+    <h2>Alle offenen Positionen</h2>
+    <div class="scroll" id="positions"></div>
+  </div>
+
+  <div class="card">
+    <h2>Wie der Bot entscheidet</h2>
+    <ul class="rules">
+      <li><b>Futures, 16 große Coins:</b> Bricht ein Coin sein 40-Tage-Hoch, geht der Bot long, beim 40-Tage-Tief short. Hier lohnt der Hebel, weil nur Futures auch an fallenden Kursen verdienen können.</li>
+      <li><b>Spot, ganzer Markt:</b> Einmal am Tag werden alle liquiden KuCoin-Coins durchsucht. Gekauft wird ein Ausbruch über das 20-Tage-Hoch mit mindestens dreifachem Umsatz. Neue Coins kommen von selbst dazu, sobald sie genug Umsatz und rund sieben Wochen Historie haben.</li>
+      <li><b>Frisch gelistete Coins kauft der Bot nicht.</b> In den KuCoin-Daten lag ein neu gelisteter Spot-Coin nach 90 Tagen typischerweise 50 % unter seinem ersten Schlusskurs, nur jeder fünfte lag im Plus.</li>
+      <li><b>Größe:</b> Mindestens 100 USDT je Position. Am Stop gehen höchstens rund 1 % des Gesamtkapitals verloren, sonst lässt der Bot den Trade aus.</li>
+    </ul>
+  </div>
+
+  <div class="card">
+    <h2>Zum Vergleich: Rücktest beider Teile zusammen</h2>
+    <ul class="rules">
+      <li><b>Zeitraum:</b> 08/2024 bis 11/2026, aus 1.000 USDT wurden rund 1.440.</li>
+      <li><b>Ergebnis:</b> etwa 17 % pro Jahr bei einem größten Rückgang von −23 %. Nur 10 von 27 Monaten lagen im Plus.</li>
+      <li><b>Einordnung:</b> 27 Monate sind wenig, die Regeln wurden an denselben Daten gewählt, und der Spot-Test kennt keine inzwischen gelöschten Coins. Realistisch ist alles zwischen einem Verlust und diesem Wert.</li>
+    </ul>
+  </div>
+  <footer>Kauf am Briefkurs, Verkauf am Geldkurs, dazu Gebühren, Slippage und Funding. Keine Anlageberatung, kein echtes Geld.</footer>
+</main>
+<script>
+const $ = id => document.getElementById(id);
+const el = (tag, cls, txt) => { const e = document.createElement(tag); if (cls) e.className = cls; if (txt != null) e.textContent = txt; return e; };
+const usd = (v, sign) => (sign && v > 0 ? "+" : "") + (v < 0 ? "−" : "") + Math.abs(v).toLocaleString("de-DE", {minimumFractionDigits: 2, maximumFractionDigits: 2}) + " $";
+const pct = (v, d = 1) => v == null ? "–" : (v < 0 ? "−" : "") + Math.abs(v * 100).toLocaleString("de-DE", {minimumFractionDigits: d, maximumFractionDigits: d}) + " %";
+const num = v => (+v).toLocaleString("de-DE", {maximumSignificantDigits: 6});
+const when = s => new Date(s).toLocaleString("de-DE", {day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit"});
+const sgn = v => v > 0 ? "pos" : v < 0 ? "neg" : "";
+const NS = "http://www.w3.org/2000/svg";
+const svg = (tag, attrs) => { const e = document.createElementNS(NS, tag); for (const k in attrs) e.setAttribute(k, attrs[k]); return e; };
+
+function kpi(label, value, note, cls) {
+  const k = el("div", "kpi");
+  k.append(el("div", "l", label), el("div", "v" + (cls ? " " + cls : ""), value), el("div", "n", note || ""));
+  return k;
+}
+
+function curve(host, pts, start) {
+  host.replaceChildren();
+  if (pts.length < 2) { host.append(el("div", "empty", "Erscheint nach den ersten Läufen.")); return; }
+  const W = 960, H = 240, L = 54, R = 12, T = 10, B = 24;
+  const ys = pts.map(p => p.eq), lo = Math.min(start, ...ys), hi = Math.max(start, ...ys), pad = (hi - lo) * .08 || 5;
+  const t0 = +new Date(pts[0].ts), t1 = +new Date(pts[pts.length - 1].ts);
+  const x = p => L + (W - L - R) * ((+new Date(p.ts) - t0) / ((t1 - t0) || 1)), y = v => T + (H - T - B) * (1 - (v - lo + pad) / (hi - lo + 2 * pad));
+  const s = svg("svg", {viewBox: `0 0 ${W} ${H}`, role: "img", "aria-label": "Gesamtkonto über die Zeit"});
+  for (const v of [...new Set([lo, start, hi])]) {
+    s.append(svg("line", {x1: L, x2: W - R, y1: y(v), y2: y(v), stroke: "var(--line)", "stroke-dasharray": v === start ? "" : "3 3"}));
+    const t = svg("text", {x: L - 6, y: y(v) + 4, "text-anchor": "end", "font-size": 11, fill: "var(--mute)"}); t.textContent = Math.round(v); s.append(t);
+  }
+  s.append(svg("polyline", {points: pts.map(p => `${x(p).toFixed(1)},${y(p.eq).toFixed(1)}`).join(" "), fill: "none", stroke: ys[ys.length - 1] >= start ? "var(--pos)" : "var(--neg)", "stroke-width": 2, "stroke-linejoin": "round"}));
+  for (const [p, anchor] of [[pts[0], "start"], [pts[pts.length - 1], "end"]]) {
+    const t = svg("text", {x: x(p), y: H - 6, "text-anchor": anchor, "font-size": 11, fill: "var(--mute)"}); t.textContent = when(p.ts); s.append(t);
+  }
+  host.append(s);
+}
+
+function part(id, d, text) {
+  const s = d.summary, box = $(id);
+  const big = box.querySelector(".big");
+  big.textContent = `${usd(s.equity)}  (${usd(s.pnl, true)})`;
+  big.className = "big " + sgn(s.pnl);
+  box.querySelector("p").textContent = text;
+}
+
+function render(f, sp) {
+  const start = f.config.start + sp.config.start, eq = f.summary.equity + sp.summary.equity, pnl = eq - start;
+  const upd = f.updated < sp.updated ? f.updated : sp.updated, age = (Date.now() - new Date(upd)) / 60000;
+  const u = $("updated");
+  u.textContent = (age > 30 ? "veraltet · " : "") + "Stand " + when(upd);
+  u.className = "tag" + (age > 30 ? " stale" : "");
+
+  // Gesamtkurve: zu jedem Futures-Punkt den letzten Spot-Stand addieren
+  let j = 0; const pts = [];
+  for (const p of f.curve) {
+    while (j + 1 < sp.curve.length && sp.curve[j + 1].ts <= p.ts) j++;
+    pts.push({ts: p.ts, eq: p.eq + (sp.curve.length && sp.curve[j].ts <= p.ts ? sp.curve[j].eq : sp.config.start)});
+  }
+  let peak = start, dd = 0;
+  for (const p of pts) { peak = Math.max(peak, p.eq); dd = Math.min(dd, p.eq / peak - 1); }
+  const trades = f.summary.trades + sp.summary.trades, wins = f.summary.wins + sp.summary.wins;
+
+  const k = $("kpis"); k.replaceChildren();
+  k.append(
+    kpi("Gesamtkonto", usd(eq), `${usd(pnl, true)} · ${pct(pnl / start)}`, sgn(pnl)),
+    kpi("Größter Rückgang", pct(dd), "vom Höchststand"),
+    kpi("Abgeschlossene Trades", String(trades), trades ? `${wins} gewonnen · ${pct(wins / trades, 0)}` : "noch keiner"),
+    kpi("Offene Positionen", String(f.summary.open + sp.summary.open), `${f.summary.open} Futures · ${sp.summary.open} Spot`),
+    kpi("Kosten bisher", usd(f.summary.fees + sp.summary.fees + Math.max(0, f.summary.funding)), "Gebühren und Funding")
+  );
+  curve($("curve"), pts, start);
+
+  part("pf", f, f.summary.open ? `${f.summary.open} offene Positionen, genutzter Hebel ${(f.summary.leverage ?? 0).toLocaleString("de-DE")}× auf das Futures-Konto. ${f.summary.trades} abgeschlossene Trades.` : `Keine offene Position. ${f.summary.trades} abgeschlossene Trades. Der Bot wartet auf einen Ausbruch aus der 40-Tage-Spanne.`);
+  const sc = sp.scan || {};
+  part("ps", sp, (sp.summary.open ? `${sp.summary.open} von ${sp.config.max_positions} Plätzen belegt. ` : "Kein Coin im Bestand. ") + `${sp.summary.trades} abgeschlossene Trades.` + (sc.day ? ` Letzter Scan: ${sc.checked} Coins geprüft, ${(sc.signals || []).length} Kaufsignale.` : " Der erste Scan läuft kurz nach Mitternacht UTC."));
+
+  const rows = [
+    ...f.positions.map(p => ["Futures", p.coin, p.side, p.since, p.entry, p.mark, p.stop, p.notional, p.pnl]),
+    ...sp.positions.map(p => ["Spot", p.coin, "long", p.since, p.entry, p.mark, p.stop, p.value, p.pnl])];
+  const host = $("positions"); host.replaceChildren();
+  if (!rows.length) host.append(el("div", "empty", "Keine offene Position, das gesamte Konto liegt in USDT."));
+  else {
+    const t = el("table"), hr = el("tr");
+    for (const h of ["Teil", "Coin", "Richtung", "Seit", "Einstieg", "Kurs", "Stop", "Wert", "Ergebnis"]) hr.append(el("th", "", h));
+    t.append(hr);
+    for (const r of rows) {
+      const tr = el("tr");
+      tr.append(el("td", "", r[0]), el("td", "", r[1]), el("td", "", r[2]), el("td", "num", when(r[3])), el("td", "num", num(r[4])), el("td", "num", num(r[5])),
+        el("td", "num", num(r[6])), el("td", "num", usd(r[7])), el("td", "num " + sgn(r[8]), usd(r[8], true)));
+      t.append(tr);
+    }
+    host.append(t);
+  }
+}
+
+const get = n => fetch(n + "?t=" + Date.now()).then(r => r.json());
+Promise.all([get("futures.json"), get("spot.json")]).then(([f, s]) => render(f, s)).catch(e => {
+  $("updated").textContent = "Daten nicht ladbar: " + e;
+});
+</script>
+</body>
+</html>

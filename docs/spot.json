@@ -1,0 +1,70 @@
+{
+ "updated": "2026-11-12T19:50:34Z",
+ "started": "2026-11-12T19:47:15Z",
+ "config": {
+  "start": 500.0,
+  "size": 100.0,
+  "max_positions": 5,
+  "high_n": 20,
+  "vol_mult": 3.0,
+  "sma_n": 50,
+  "min_volume": 1000000,
+  "hard_stop": 0.12,
+  "trail_stop": 0.15,
+  "take_profit": 0.4,
+  "fee": 0.001,
+  "backtest": {
+   "from": "2024-08-05",
+   "to": "2026-11-12",
+   "cagr": 0.117,
+   "max_dd": -0.311,
+   "trades": 130,
+   "win_rate": 0.33,
+   "cagr_first": 0.104,
+   "cagr_last": 0.058,
+   "months_up": 8,
+   "months": 27,
+   "best_month": 0.467,
+   "avg_win": 26.3,
+   "avg_loss": -11.3
+  }
+ },
+ "summary": {
+  "equity": 500.0,
+  "pnl": 0.0,
+  "ret": 0.0,
+  "max_dd": 0.0,
+  "trades": 0,
+  "wins": 0,
+  "win_rate": null,
+  "profit_factor": null,
+  "avg_win": null,
+  "avg_loss": null,
+  "fees": 0.0,
+  "cash": 500.0,
+  "invested": 0,
+  "invested_share": 0.0,
+  "open": 0
+ },
+ "positions": [],
+ "curve": [
+  {
+   "ts": "2026-11-12T19:47:15Z",
+   "eq": 500.0
+  },
+  {
+   "ts": "2026-11-12T19:50:34Z",
+   "eq": 500.0
+  }
+ ],
+ "scan": {
+  "ts": "2026-11-12T19:47:15Z",
+  "day": "2026-11-11",
+  "checked": 136,
+  "liquid": 38,
+  "signals": []
+ },
+ "trades": [],
+ "errors": [],
+ "run_errors": 0
+}
