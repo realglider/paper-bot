@@ -166,5 +166,41 @@
   "result": "Up",
   "win": true,
   "pnl": 36.5842
+ },
+ {
+  "side": "Down",
+  "price": 0.31,
+  "shares": 32,
+  "fee": 0.4791,
+  "cost": 10.3991,
+  "p_model": 0.389,
+  "edge": 0.064,
+  "coin": "ETH",
+  "ts": "2026-11-12T17:22:50Z",
+  "round_start": "2026-11-12T17:00:00Z",
+  "slug": "ethereum-up-or-down-november-12-2026-12pm-et",
+  "tau_min": 37.16,
+  "spot": 2011.86,
+  "open": 2007.51,
+  "status": "open",
+  "reason": "Modell 39% für Down, Markt verlangt 0.31, Vorteil nach Gebühr 6.4 Cent"
+ },
+ {
+  "side": "Down",
+  "price": 0.31,
+  "shares": 32,
+  "fee": 0.4791,
+  "cost": 10.3991,
+  "p_model": 0.3833,
+  "edge": 0.0583,
+  "coin": "BTC",
+  "ts": "2026-11-12T17:23:58Z",
+  "round_start": "2026-11-12T17:00:00Z",
+  "slug": "bitcoin-up-or-down-november-12-2026-12pm-et",
+  "tau_min": 36.02,
+  "spot": 71872.01,
+  "open": 71754.97,
+  "status": "open",
+  "reason": "Modell 38% für Down, Markt verlangt 0.31, Vorteil nach Gebühr 5.8 Cent"
  }
 ]
