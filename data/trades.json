@@ -77,8 +77,11 @@
   "tau_min": 56.54,
   "spot": 71357.45,
   "open": 71646.01,
-  "status": "open",
-  "reason": "Modell 72% für Down, Markt verlangt 0.65, Vorteil nach Gebühr 5.8 Cent"
+  "status": "settled",
+  "reason": "Modell 72% für Down, Markt verlangt 0.65, Vorteil nach Gebühr 5.8 Cent",
+  "result": "Up",
+  "win": false,
+  "pnl": -9.9889
  },
  {
   "side": "Up",
@@ -95,7 +98,10 @@
   "tau_min": 25.4,
   "spot": 1998.16,
   "open": 2005.27,
-  "status": "open",
-  "reason": "Modell 32% für Up, Markt verlangt 0.26, Vorteil nach Gebühr 5.0 Cent"
+  "status": "settled",
+  "reason": "Modell 32% für Up, Markt verlangt 0.26, Vorteil nach Gebühr 5.0 Cent",
+  "result": "Up",
+  "win": true,
+  "pnl": 27.6082
  }
 ]
