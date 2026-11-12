@@ -16,5 +16,41 @@
   "open": 72503.34,
   "status": "open",
   "reason": "Modell 65% für Down, Markt verlangt 0.58, Vorteil nach Gebühr 5.1 Cent"
+ },
+ {
+  "side": "Down",
+  "price": 0.81,
+  "shares": 12,
+  "fee": 0.1293,
+  "cost": 9.8493,
+  "p_model": 0.8813,
+  "edge": 0.0605,
+  "coin": "ETH",
+  "ts": "2026-11-12T14:22:10Z",
+  "round_start": "2026-11-12T14:00:00Z",
+  "slug": "ethereum-up-or-down-november-12-2026-9am-et",
+  "tau_min": 37.83,
+  "spot": 1993.32,
+  "open": 2012.47,
+  "status": "open",
+  "reason": "Modell 88% für Down, Markt verlangt 0.81, Vorteil nach Gebühr 6.0 Cent"
+ },
+ {
+  "side": "Down",
+  "price": 0.86,
+  "shares": 11,
+  "fee": 0.0927,
+  "cost": 9.5527,
+  "p_model": 0.9305,
+  "edge": 0.0621,
+  "coin": "SOL",
+  "ts": "2026-11-12T14:23:22Z",
+  "round_start": "2026-11-12T14:00:00Z",
+  "slug": "solana-up-or-down-november-12-2026-9am-et",
+  "tau_min": 36.63,
+  "spot": 80.6,
+  "open": 81.42,
+  "status": "open",
+  "reason": "Modell 93% für Down, Markt verlangt 0.86, Vorteil nach Gebühr 6.2 Cent"
  }
 ]
