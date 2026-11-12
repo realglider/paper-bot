@@ -51,7 +51,7 @@ def sig_bb_mr(A,idx,n=96,z=2.5,**k):
     return c<m-z*s, c>m+z*s, c>m, c<m
 SIG={"donchian":sig_donchian,"ema":sig_ema,"tsmom":sig_tsmom,"xsmom":sig_xsmom,"rsi_mr":sig_rsi_mr,"bb_mr":sig_bb_mr}
 
-def run(idx,S,A,F,name,p,risk=0.01,stop_k=3.0,trail=True,atr_n=96,max_pos=1.5,max_gross=3.0,side="both",eq0=1000.0,t0=None,t1=None,cols=None):
+def run(idx,S,A,F,name,p,risk=0.01,stop_k=3.0,trail=True,atr_n=96,max_pos=1.5,max_gross=3.0,side="both",min_notional=0.0,frac=0.0,eq0=1000.0,t0=None,t1=None,cols=None):
     el,es,xl,xs=SIG[name](A,idx,**p)
     at=atr(A,atr_n); o,h,l,c=A["o"],A["h"],A["l"],A["c"]
     T,N=c.shape; cols=range(N) if cols is None else cols
@@ -73,7 +73,7 @@ def run(idx,S,A,F,name,p,risk=0.01,stop_k=3.0,trail=True,atr_n=96,max_pos=1.5,ma
                 d=1 if (el[t-1,i] and side!="short") else (-1 if (es[t-1,i] and side!="long") else 0)
                 if d and d!=blk[i]:
                     dist=stop_k*at[t-1,i]; px=o[t,i]*(1+SLIP*d)
-                    notional=min(equity*risk/(dist/px), equity*max_pos)
+                    notional=min(max(equity*risk/(dist/px),min_notional,equity*frac), equity*max_pos)
                     gross=np.nansum(np.abs(qty)*lastc)
                     if gross+notional<=equity*max_gross and notional>5:
                         qty[i]=q=d*notional/px; ent[i]=px; stop[i]=px-d*dist; cash-=notional*FEE

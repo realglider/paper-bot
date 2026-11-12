@@ -1,0 +1,90 @@
+{
+ "cash": 1000.0,
+ "positions": {},
+ "blocked": [],
+ "last_eval": 1794510000000,
+ "fees": 0.0,
+ "watch": {
+  "BTC": {
+   "close": 71752.1,
+   "high": 86986.2,
+   "exit_low": 71258.0
+  },
+  "ETH": {
+   "close": 2016.48,
+   "high": 2738.9,
+   "exit_low": 1983.99
+  },
+  "SOL": {
+   "close": 81.58,
+   "high": 122.29,
+   "exit_low": 80.46
+  },
+  "XRP": {
+   "close": 1.02979,
+   "high": 1.53059,
+   "exit_low": 1.01637
+  },
+  "DOGE": {
+   "close": 0.06607,
+   "high": 0.09757,
+   "exit_low": 0.06455
+  },
+  "BNB": {
+   "close": 654.453,
+   "high": 809.88,
+   "exit_low": 649.746
+  },
+  "ADA": {
+   "close": 0.172,
+   "high": 0.2823,
+   "exit_low": 0.1674
+  },
+  "LINK": {
+   "close": 10.0535,
+   "high": 14.3265,
+   "exit_low": 9.7745
+  },
+  "AVAX": {
+   "close": 8.359,
+   "high": 11.728,
+   "exit_low": 7.772
+  },
+  "LTC": {
+   "close": 49.85,
+   "high": 72.27,
+   "exit_low": 48.41
+  },
+  "BCH": {
+   "close": 225.93,
+   "high": 322.61,
+   "exit_low": 223.36
+  },
+  "DOT": {
+   "close": 0.8302,
+   "high": 1.2965,
+   "exit_low": 0.8143
+  },
+  "NEAR": {
+   "close": 3.4291,
+   "high": 6.0048,
+   "exit_low": 3.3423
+  },
+  "AAVE": {
+   "close": 113.287,
+   "high": 187.895,
+   "exit_low": 110.771
+  },
+  "UNI": {
+   "close": 6.024,
+   "high": 9.242,
+   "exit_low": 5.9303
+  },
+  "TRX": {
+   "close": 0.316,
+   "high": 0.3922,
+   "exit_low": 0.3008
+  }
+ },
+ "started": "2026-11-12T19:06:56Z"
+}

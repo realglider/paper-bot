@@ -2,21 +2,23 @@
 
 Zwei Paper-Trading-Tests, beide ohne Konto, ohne Wallet und ohne echte Orders:
 
-- **KuCoin Futures** (`kucoin/`): Trendfolge auf 16 USDT-Perpetuals mit 1.000 $ Scheinkapital. Dashboard: `docs/futures.html`
+- **KuCoin Spot** (`kucoin/`): Trendfolge auf 16 Coins mit 1.000 USDT Scheinkapital. Dashboard: `docs/spot.html`
 - **Polymarket Up/Down** (`bot/`): stündliche Kryptomärkte. Dashboard: `docs/index.html`
 
-## KuCoin-Futures-Bot
+## KuCoin-Spot-Bot
 
-Regeln (Einstellungen oben in `kucoin/futures_bot.py`):
+Nur kaufen und verkaufen, kein Hebel, keine Leerverkäufe. Regeln (Einstellungen oben in `kucoin/spot_bot.py`):
 
-- **Einstieg:** Schlusskurs der Stundenkerze über dem 40-Tage-Hoch (long) oder unter dem 40-Tage-Tief (short).
-- **Ausstieg:** Gegenkanal der letzten 20 Tage oder Stop bei 12 × Stunden-ATR (rund 2,5 Tagesspannen). Der Stop wird im Gewinn nachgezogen und zwischen den Läufen mit Minutenkerzen nachgeprüft.
-- **Größe:** Ein Stop kostet 0,5 % des Kontos. Eine Position höchstens 1,5 × Konto, alle zusammen höchstens 3 ×.
-- **Kosten:** Kauf am Briefkurs, Verkauf am Geldkurs, 0,06 % Taker-Gebühr, 0,02 % Slippage, echte Funding-Raten.
+- **Kauf:** Schlusskurs der Stundenkerze über dem 40-Tage-Hoch.
+- **Verkauf:** Schlusskurs unter dem 20-Tage-Tief oder Stop bei 12 × Stunden-ATR (rund 2,5 Tagesspannen). Der Stop wird im Gewinn nachgezogen und zwischen den Läufen mit Minutenkerzen nachgeprüft.
+- **Größe:** 10 % des Kontos je Coin, mindestens 100 USDT, höchstens so viel, wie frei ist.
+- **Kosten:** Kauf am Briefkurs, Verkauf am Geldkurs, 0,1 % Taker-Gebühr, 0,02 % Slippage.
 
-Rücktest (Skripte in `kucoin/research/`), August 2024 bis November 2026: etwa +15 % pro Jahr bei −19 % größtem Rückgang, 40 % Gewinntrades, 12 von 27 Monaten im Plus. Die fünf besten Trades brachten 60 % des Gewinns. Der Zeitraum ist kurz und die Stop-Weite wurde nach einem ersten Durchlauf angepasst, die Zahlen sind also eher zu günstig.
+Rücktest (`kucoin/research/spot.py`), August 2024 bis November 2026: etwa +15 % pro Jahr bei −31 % größtem Rückgang, 37 % Gewinntrades. Ein einziger Monat (November 2024, +48 %) trägt das gesamte Ergebnis, nur 9 von 27 Monaten lagen im Plus. Dieselben Coins zu halten brachte +6 % bei −69 % Rückgang. Der Zeitraum ist kurz und die Regeln wurden an denselben Daten gewählt, die Zahlen sind also eher zu günstig.
 
-Grenzen: Der Bot läuft etwa alle fünf Minuten, nicht im Sekundentakt. Stops werden zum Stop-Kurs abgerechnet (bei Kurslücken schlechter), ein echter Stop kann in einem Absturz deutlich weiter durchrutschen. Viele Coins fallen und steigen gemeinsam, mehrere Positionen sind dann praktisch eine große.
+Vorgänger war ein Futures-Bot mit Hebel und Leerverkäufen. Er wurde auf Spot umgestellt, bevor er einen Trade gemacht hatte. Sein Rücktest liegt weiter unter `kucoin/research/` (`grid.py`, `grid2.py`, `final.py`, `uni.py`).
+
+Grenzen: Der Bot läuft etwa alle fünf Minuten. Stops werden zum Stop-Kurs abgerechnet (bei Kurslücken schlechter), in einem Absturz kann ein echter Stop weiter durchrutschen. Die Coins steigen und fallen meist gemeinsam, zehn Positionen sind dann praktisch eine große.
 
 ## Polymarket-Bot
 
@@ -40,7 +42,7 @@ Kein Konto, kein Wallet, keine Orders: Der Bot liest nur öffentliche Daten und 
 | `data/trades.json` | Alle Scheintrades mit Begründung und Ergebnis |
 | `data/rounds.json` | Ergebnis jeder Runde |
 | `docs/` | Dashboard (GitHub Pages) |
-| `kucoin/futures_bot.py` | Futures-Scheinkonto, Daten in `data/futures/` |
+| `kucoin/spot_bot.py` | Spot-Scheinkonto, Daten in `data/spot/` |
 | `.github/workflows/bot.yml` | Je Lauf 5 Messungen im Minutentakt, danach startet der Lauf seinen Nachfolger |
 
 ## Annahmen und Grenzen
