@@ -250,5 +250,23 @@
   "result": "Up",
   "win": true,
   "pnl": 21.6009
+ },
+ {
+  "side": "Up",
+  "price": 0.2,
+  "shares": 50,
+  "fee": 0.56,
+  "cost": 10.56,
+  "p_model": 0.2644,
+  "edge": 0.0532,
+  "coin": "BNB",
+  "ts": "2026-11-12T18:18:42Z",
+  "round_start": "2026-11-12T18:00:00Z",
+  "slug": "bnb-up-or-down-november-12-2026-1pm-et",
+  "tau_min": 41.29,
+  "spot": 654.52,
+  "open": 656.68,
+  "status": "open",
+  "reason": "Modell 26% für Up, Markt verlangt 0.20, Vorteil nach Gebühr 5.3 Cent"
  }
 ]
