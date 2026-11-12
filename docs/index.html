@@ -17,6 +17,9 @@
 *{box-sizing:border-box}
 body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 system-ui,-apple-system,"Segoe UI",sans-serif}
 main{max-width:1040px;margin:0 auto;padding:20px 16px 48px}
+nav{display:flex;gap:6px;margin-bottom:14px;flex-wrap:wrap}
+nav a{font-size:13px;padding:5px 12px;border:1px solid var(--line);border-radius:999px;color:var(--mute);text-decoration:none}
+nav a.on{background:var(--ink);color:var(--bg);border-color:var(--ink)}
 header{display:flex;flex-wrap:wrap;gap:8px 16px;align-items:baseline;justify-content:space-between;margin-bottom:6px}
 h1{font-size:20px;margin:0;letter-spacing:.01em}
 h2{font-size:12px;margin:0 0 10px;color:var(--mute);text-transform:uppercase;letter-spacing:.09em;font-weight:600}
@@ -54,6 +57,7 @@ footer{color:var(--mute);font-size:12px;margin-top:18px}
 </head>
 <body>
 <main>
+  <nav><a href="futures.html">KuCoin Futures</a><a href="index.html" class="on">Polymarket Up/Down</a></nav>
   <header>
     <h1>Paper-Bot · Krypto Up/Down stündlich</h1>
     <span class="tag" id="updated">lädt …</span>

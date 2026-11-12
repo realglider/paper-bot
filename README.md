@@ -1,5 +1,25 @@
 # paper-bot
 
+Zwei Paper-Trading-Tests, beide ohne Konto, ohne Wallet und ohne echte Orders:
+
+- **KuCoin Futures** (`kucoin/`): Trendfolge auf 16 USDT-Perpetuals mit 1.000 $ Scheinkapital. Dashboard: `docs/futures.html`
+- **Polymarket Up/Down** (`bot/`): stündliche Kryptomärkte. Dashboard: `docs/index.html`
+
+## KuCoin-Futures-Bot
+
+Regeln (Einstellungen oben in `kucoin/futures_bot.py`):
+
+- **Einstieg:** Schlusskurs der Stundenkerze über dem 40-Tage-Hoch (long) oder unter dem 40-Tage-Tief (short).
+- **Ausstieg:** Gegenkanal der letzten 20 Tage oder Stop bei 12 × Stunden-ATR (rund 2,5 Tagesspannen). Der Stop wird im Gewinn nachgezogen und zwischen den Läufen mit Minutenkerzen nachgeprüft.
+- **Größe:** Ein Stop kostet 0,5 % des Kontos. Eine Position höchstens 1,5 × Konto, alle zusammen höchstens 3 ×.
+- **Kosten:** Kauf am Briefkurs, Verkauf am Geldkurs, 0,06 % Taker-Gebühr, 0,02 % Slippage, echte Funding-Raten.
+
+Rücktest (Skripte in `kucoin/research/`), August 2024 bis November 2026: etwa +15 % pro Jahr bei −19 % größtem Rückgang, 40 % Gewinntrades, 12 von 27 Monaten im Plus. Die fünf besten Trades brachten 60 % des Gewinns. Der Zeitraum ist kurz und die Stop-Weite wurde nach einem ersten Durchlauf angepasst, die Zahlen sind also eher zu günstig.
+
+Grenzen: Der Bot läuft etwa alle fünf Minuten, nicht im Sekundentakt. Stops werden zum Stop-Kurs abgerechnet (bei Kurslücken schlechter), ein echter Stop kann in einem Absturz deutlich weiter durchrutschen. Viele Coins fallen und steigen gemeinsam, mehrere Positionen sind dann praktisch eine große.
+
+## Polymarket-Bot
+
 Paper-Trading-Test für die stündlichen **Up or Down**-Kryptomärkte auf Polymarket (BTC, ETH, SOL, XRP, DOGE, BNB).
 Kein Konto, kein Wallet, keine Orders: Der Bot liest nur öffentliche Daten und loggt Scheintrades.
 
@@ -20,6 +40,7 @@ Kein Konto, kein Wallet, keine Orders: Der Bot liest nur öffentliche Daten und 
 | `data/trades.json` | Alle Scheintrades mit Begründung und Ergebnis |
 | `data/rounds.json` | Ergebnis jeder Runde |
 | `docs/` | Dashboard (GitHub Pages) |
+| `kucoin/futures_bot.py` | Futures-Scheinkonto, Daten in `data/futures/` |
 | `.github/workflows/bot.yml` | Je Lauf 5 Messungen im Minutentakt, danach startet der Lauf seinen Nachfolger |
 
 ## Annahmen und Grenzen
