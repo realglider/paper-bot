@@ -139,5 +139,23 @@
   "open": 1.0269,
   "status": "open",
   "reason": "Modell 32% für Up, Markt verlangt 0.25, Vorteil nach Gebühr 5.4 Cent"
+ },
+ {
+  "side": "Up",
+  "price": 0.21,
+  "shares": 47,
+  "fee": 0.5458,
+  "cost": 10.4158,
+  "p_model": 0.2772,
+  "edge": 0.0556,
+  "coin": "BTC",
+  "ts": "2026-11-12T16:45:39Z",
+  "round_start": "2026-11-12T16:00:00Z",
+  "slug": "bitcoin-up-or-down-november-12-2026-11am-et",
+  "tau_min": 14.33,
+  "spot": 71550.01,
+  "open": 71710.05,
+  "status": "open",
+  "reason": "Modell 28% für Up, Markt verlangt 0.21, Vorteil nach Gebühr 5.6 Cent"
  }
 ]
