@@ -1,1 +1,20 @@
-[]
+[
+ {
+  "side": "Down",
+  "price": 0.58,
+  "shares": 17,
+  "fee": 0.2899,
+  "cost": 10.1499,
+  "p_model": 0.6483,
+  "edge": 0.0513,
+  "coin": "BTC",
+  "ts": "2026-11-12T14:14:47Z",
+  "round_start": "2026-11-12T14:00:00Z",
+  "slug": "bitcoin-up-or-down-november-12-2026-9am-et",
+  "tau_min": 45.2,
+  "spot": 72367.51,
+  "open": 72503.34,
+  "status": "open",
+  "reason": "Modell 65% für Down, Markt verlangt 0.58, Vorteil nach Gebühr 5.1 Cent"
+ }
+]

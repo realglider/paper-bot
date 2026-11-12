@@ -45,11 +45,11 @@ class T(unittest.TestCase):
 
     def test_slug(self):
         t = dt.datetime(2026, 11, 12, 10, 0, tzinfo=dt.timezone.utc)
-        self.assertEqual(b.slug_for(t), "bitcoin-up-or-down-november-12-2026-5am-et")
+        self.assertEqual(b.slug_for("bitcoin", t), "bitcoin-up-or-down-november-12-2026-5am-et")
         t = dt.datetime(2026, 7, 4, 4, 0, tzinfo=dt.timezone.utc)   # Sommerzeit, Mitternacht ET
-        self.assertEqual(b.slug_for(t), "bitcoin-up-or-down-july-4-2026-12am-et")
+        self.assertEqual(b.slug_for("dogecoin", t), "dogecoin-up-or-down-july-4-2026-12am-et")
         t = dt.datetime(2026, 7, 4, 16, 0, tzinfo=dt.timezone.utc)
-        self.assertEqual(b.slug_for(t, False), "bitcoin-up-or-down-july-4-12pm-et")
+        self.assertEqual(b.slug_for("xrp", t, False), "xrp-up-or-down-july-4-12pm-et")
 
 
 if __name__ == "__main__":

@@ -2,11 +2,12 @@ name: paper-bot
 
 on:
   schedule:
-    - cron: "*/5 * * * *"
+    - cron: "7,37 * * * *"   # nur Sicherheitsnetz, falls die Kette reisst
   workflow_dispatch:
 
 permissions:
   contents: write
+  actions: write
 
 concurrency:
   group: paper-bot
@@ -15,7 +16,7 @@ concurrency:
 jobs:
   run:
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
 
@@ -23,7 +24,7 @@ jobs:
         run: python3 -m unittest -q tests.test_model
 
       - name: Messen und Scheintrades loggen
-        run: python3 bot/paper_bot.py --samples 4 --interval 60
+        run: python3 bot/paper_bot.py --samples 5 --interval 60
 
       - name: Ergebnisse speichern
         if: always()
@@ -38,3 +39,11 @@ jobs:
             sleep 5
           done
           exit 1
+
+      # GitHubs Zeitplan startet oft stark verspaetet oder gar nicht. Deshalb stoesst
+      # jeder Lauf den naechsten selbst an. Stoppen: laufenden Lauf abbrechen (Cancel).
+      - name: Naechsten Lauf starten
+        if: ${{ !cancelled() }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh workflow run bot.yml --repo "$GITHUB_REPOSITORY" --ref main

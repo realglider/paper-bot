@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Paper-Bot · BTC Up/Down</title>
+<title>Paper-Bot · Krypto Up/Down</title>
 <style>
 :root{
   --bg:#f4f2ec;--card:#fffdf8;--ink:#1c1b18;--mute:#6f6a5f;--line:#ddd8cb;
@@ -42,7 +42,7 @@ svg{display:block;width:100%;height:auto}
 .live{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:10px;font-family:var(--mono)}
 .live span{display:block;font:12px system-ui,sans-serif;color:var(--mute)}
 .scroll{overflow-x:auto}
-table{border-collapse:collapse;width:100%;font-size:13px;min-width:640px}
+table{border-collapse:collapse;width:100%;font-size:13px;min-width:760px}
 th{text-align:left;color:var(--mute);font-weight:600;font-size:12px;border-bottom:1px solid var(--line);padding:6px 8px}
 td{padding:7px 8px;border-bottom:1px solid var(--line);vertical-align:top}
 td.num{font-family:var(--mono);font-variant-numeric:tabular-nums;white-space:nowrap}
@@ -55,17 +55,18 @@ footer{color:var(--mute);font-size:12px;margin-top:18px}
 <body>
 <main>
   <header>
-    <h1>Paper-Bot · BTC Up/Down stündlich</h1>
+    <h1>Paper-Bot · Krypto Up/Down stündlich</h1>
     <span class="tag" id="updated">lädt …</span>
   </header>
-  <p class="sub">Scheintrades ohne echtes Geld. Der Bot berechnet aus Binance-Kurs, Restlaufzeit und Volatilität eine faire Wahrscheinlichkeit und vergleicht sie mit dem Polymarket-Orderbuch.</p>
+  <p class="sub">Scheintrades ohne echtes Geld. Der Bot berechnet für sechs Coins aus Binance-Kurs, Restlaufzeit und Volatilität eine faire Wahrscheinlichkeit und vergleicht sie mit dem Polymarket-Orderbuch.</p>
 
   <div class="card verdict" id="verdict"><b>lädt …</b><span></span></div>
   <div class="kpis" id="kpis"></div>
 
   <div class="card">
-    <h2>Laufende Runde</h2>
-    <div class="live" id="live"></div>
+    <h2>Je Coin: laufende Runde und bisherige Bilanz</h2>
+    <div class="scroll" id="coins"></div>
+    <div class="legend"><span>Spanne = Abstand Geld/Brief im Schnitt</span><span>Abweichung = mittlerer Abstand Modell zu Marktmitte</span><span>Brier: kleiner ist besser</span></div>
   </div>
 
   <div class="grid">
@@ -184,20 +185,29 @@ function render(d) {
     kpi("Brier Modell / Markt", [s.brier_model, s.brier_market].map(v => v == null ? "–" : v.toLocaleString("de-DE", {minimumFractionDigits: 3, maximumFractionDigits: 3})).join(" / "), "kleiner ist besser · " + s.rounds + " Runden")
   );
 
-  const live = $("live"); live.replaceChildren();
-  const o = d.latest;
-  if (o) {
-    const cell = (l, v) => { const c = el("div"); c.append(el("span", "", l), document.createTextNode(v)); return c; };
-    const diff = +o.spot - +o.open;
-    live.append(
-      cell("Runde ab", when(o.round_start)),
-      cell("Eröffnung", "$" + (+o.open).toLocaleString("de-DE")),
-      cell("Kurs", "$" + (+o.spot).toLocaleString("de-DE") + " (" + (diff >= 0 ? "+" : "−") + Math.abs(diff).toFixed(0) + ")"),
-      cell("Restzeit", (+o.tau_min).toFixed(0) + " min"),
-      cell("Modell Up", pct(+o.p_model)),
-      cell("Markt Up", o.up_bid && o.up_ask ? `${(+o.up_bid).toFixed(2)} / ${(+o.up_ask).toFixed(2)}` : "–")
-    );
-  } else live.append(el("div", "empty", "Noch keine Messung."));
+  const ch = $("coins"); ch.replaceChildren();
+  const num = v => (+v).toLocaleString("de-DE", {maximumSignificantDigits: 6});
+  const ct = el("table"), chr = el("tr");
+  for (const h of ["Coin", "Kurs (zur Eröffnung)", "Rest", "Modell Up", "Markt Up", "Spanne", "Abweichung", "Trades", "Gewinn", "Brier Modell / Markt"]) chr.append(el("th", "", h));
+  ct.append(chr);
+  const f3 = v => v == null ? "–" : v.toLocaleString("de-DE", {minimumFractionDigits: 3, maximumFractionDigits: 3});
+  const cents = v => v == null ? "–" : (v * 100).toLocaleString("de-DE", {minimumFractionDigits: 1, maximumFractionDigits: 1}) + " ct";
+  for (const c of d.coins) {
+    const o = c.latest, r = el("tr");
+    const fresh = o && (Date.now() - new Date(o.ts)) / 60000 < 30;
+    const chg = o ? (+o.spot / +o.open - 1) * 100 : 0;
+    r.append(el("td", "", c.coin),
+      el("td", "num", o ? `${num(o.spot)} (${chg >= 0 ? "+" : "−"}${Math.abs(chg).toFixed(2)} %)` : "–"),
+      el("td", "num", fresh ? (+o.tau_min).toFixed(0) + " min" : "–"),
+      el("td", "num", o ? pct(+o.p_model, 0) : "–"),
+      el("td", "num", o && o.up_bid && o.up_ask ? `${(+o.up_bid).toFixed(2)} / ${(+o.up_ask).toFixed(2)}` : "–"),
+      el("td", "num", cents(c.avg_spread)), el("td", "num", cents(c.avg_gap)),
+      el("td", "num", c.trades ? `${c.wins} von ${c.trades}` : "0"),
+      el("td", "num " + (c.pnl > 0 ? "pos" : c.pnl < 0 ? "neg" : ""), c.trades ? usd(c.pnl, true) : "–"),
+      el("td", "num", f3(c.brier_model) + " / " + f3(c.brier_market)));
+    ct.append(r);
+  }
+  ch.append(ct);
 
   lineChart($("equity"), d.equity);
   calibChart($("calib"), d.calibration);
@@ -206,11 +216,11 @@ function render(d) {
   if (!d.trades.length) host.append(el("div", "empty", `Noch kein Scheintrade. Der Bot handelt nur, wenn das Modell mindestens ${Math.round(d.config.min_edge * 100)} Cent Vorteil nach Gebühr sieht.`));
   else {
     const t = el("table"), hr = el("tr");
-    for (const h of ["Zeit", "Seite", "Preis", "Stück", "Ergebnis", "Gewinn", "Begründung"]) hr.append(el("th", "", h));
+    for (const h of ["Zeit", "Coin", "Seite", "Preis", "Stück", "Ergebnis", "Gewinn", "Begründung"]) hr.append(el("th", "", h));
     t.append(hr);
     for (const x of d.trades) {
       const r = el("tr"), done = x.status === "settled";
-      r.append(el("td", "num", when(x.ts)), el("td", "", x.side), el("td", "num", x.price.toFixed(2)), el("td", "num", String(x.shares)),
+      r.append(el("td", "num", when(x.ts)), el("td", "", x.coin), el("td", "", x.side), el("td", "num", x.price.toFixed(2)), el("td", "num", String(x.shares)),
         el("td", "", done ? (x.win ? "gewonnen" : "verloren") : "offen"),
         el("td", "num " + (done ? (x.pnl >= 0 ? "pos" : "neg") : ""), done ? usd(x.pnl, true) : "–"),
         el("td", "why", x.reason));
