@@ -1,5 +1,5 @@
 {
- "updated": "2026-11-13T08:22:59Z",
+ "updated": "2026-11-13T08:27:09Z",
  "started": "2026-11-12T19:50:01Z",
  "config": {
   "start": 500.0,
@@ -11,6 +11,8 @@
   "strategy": "donchian",
   "min_notional": 100.0,
   "max_risk": 0.02,
+  "partial_r": 1.0,
+  "partial_fraction": 0.5,
   "n": 960,
   "exit": 480,
   "coins": [
@@ -34,23 +36,26 @@
   "backtest": {
    "from": "2024-08-05",
    "to": "2026-11-12",
-   "cagr": 0.227,
-   "max_dd": -0.24,
-   "trades": 140,
-   "win_rate": 0.39,
-   "pf_first": 1.46,
-   "pf_last": 1.65,
-   "cagr_first": 0.057,
-   "cagr_last": 0.525,
-   "months_up": 13,
+   "cagr": 0.19,
+   "max_dd": -0.137,
+   "trades": 132,
+   "win_rate": 0.485,
+   "pf_first": 1.16,
+   "pf_last": 1.33,
+   "cagr_first": 0.012,
+   "cagr_last": 0.249,
+   "months_up": 14,
    "months": 27,
-   "top5_share": 0.81
+   "top5_share": 0.68,
+   "plain_cagr": 0.227,
+   "plain_dd": -0.24,
+   "plain_win": 0.39
   }
  },
  "summary": {
-  "equity": 502.99,
-  "pnl": 2.99,
-  "ret": 0.006,
+  "equity": 502.83,
+  "pnl": 2.83,
+  "ret": 0.0057,
   "max_dd": -0.0034,
   "trades": 0,
   "wins": 0,
@@ -60,7 +65,7 @@
   "avg_loss": null,
   "fees": 0.06,
   "funding": 0.0,
-  "gross": 100.39,
+  "gross": 100.55,
   "leverage": 0.2,
   "open": 1,
   "liquidated": null
@@ -71,13 +76,15 @@
    "side": "short",
    "qty": 0.16,
    "entry": 646.530668,
-   "mark": 627.41,
+   "mark": 628.41,
    "stop": 676.6333941939167,
    "since": "2026-11-13T03:02:02Z",
-   "notional": 100.39,
+   "notional": 100.55,
    "margin": 10.34,
-   "pnl": 2.99,
-   "risk": 7.88,
+   "pnl": 2.83,
+   "partial": false,
+   "target": 598.5619691630433,
+   "risk": 7.72,
    "reason": "Schluss 645.97 unter dem 960-h-Tief 648.87"
   }
  ],
@@ -581,6 +588,10 @@
   {
    "ts": "2026-11-13T08:22:59Z",
    "eq": 502.99
+  },
+  {
+   "ts": "2026-11-13T08:27:09Z",
+   "eq": 502.83
   }
  ],
  "watch": [

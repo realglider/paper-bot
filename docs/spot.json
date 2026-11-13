@@ -1,5 +1,5 @@
 {
- "updated": "2026-11-13T08:23:00Z",
+ "updated": "2026-11-13T08:27:10Z",
  "started": "2026-11-12T19:47:15Z",
  "config": {
   "start": 500.0,
@@ -11,22 +11,27 @@
   "min_volume": 1000000,
   "hard_stop": 0.12,
   "trail_stop": 0.15,
-  "take_profit": 0.4,
+  "partial_at": 0.2,
+  "partial_fraction": 0.5,
   "fee": 0.001,
   "backtest": {
    "from": "2024-08-05",
    "to": "2026-11-12",
-   "cagr": 0.117,
-   "max_dd": -0.311,
-   "trades": 130,
-   "win_rate": 0.33,
-   "cagr_first": 0.104,
-   "cagr_last": 0.058,
-   "months_up": 8,
+   "cagr": 0.141,
+   "max_dd": -0.238,
+   "trades": 113,
+   "win_rate": 0.4,
+   "cagr_first": 0.204,
+   "cagr_last": 0.069,
+   "months_up": 10,
    "months": 27,
-   "best_month": 0.467,
-   "avg_win": 26.3,
-   "avg_loss": -11.3
+   "best_month": 0.308,
+   "avg_win": 22.0,
+   "avg_loss": -12.0,
+   "slip_cagr": 0.11,
+   "old_cagr": 0.147,
+   "old_dd": -0.293,
+   "old_slip_cagr": -0.031
   }
  },
  "summary": {
@@ -550,6 +555,10 @@
   },
   {
    "ts": "2026-11-13T08:23:00Z",
+   "eq": 500.0
+  },
+  {
+   "ts": "2026-11-13T08:27:10Z",
    "eq": 500.0
   }
  ],
