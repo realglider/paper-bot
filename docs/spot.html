@@ -154,7 +154,7 @@ function render(d) {
   $("sub").textContent = `Spot-Konto mit ${usd(c.start)} seit ${when(d.started)}, die Hälfte des Gesamtkapitals. Der Bot durchsucht einmal am Tag den ganzen KuCoin-Spotmarkt und kauft Ausbrüche mit Volumenspitze. Kein Hebel.`;
 
   const box = $("verdict"); let cls = "", head, text;
-  if (s.trades < 40) { head = "Noch keine Aussage möglich"; text = `${s.trades} von mindestens 40 abgeschlossenen Trades. Im Rücktest verlor der Bot zwei von drei Trades und lebte von wenigen großen Gewinnern.`; }
+  if (s.trades < 40) { head = "Noch keine Aussage möglich"; text = `${s.trades} von mindestens 40 abgeschlossenen Trades. Im Rücktest verlor der Bot sechs von zehn Trades und lebte von wenigen großen Gewinnern.`; }
   else if (s.profit_factor > 1.2 && s.pnl > 0) { cls = "pos"; head = "Bisher im Plus"; text = `Profit-Faktor ${s.profit_factor.toLocaleString("de-DE")} nach Gebühren über ${s.trades} Trades, größter Rückgang ${pct(s.max_dd)}.`; }
   else if (s.pnl < 0) { cls = "neg"; head = "Bisher im Minus"; text = `${usd(s.pnl, true)} nach ${s.trades} Trades, größter Rückgang ${pct(s.max_dd)}.`; }
   else { head = "Kein klarer Vorteil"; text = `Profit-Faktor ${s.profit_factor ?? "–"} über ${s.trades} Trades. Das ist von Zufall kaum zu unterscheiden.`; }
@@ -172,8 +172,8 @@ function render(d) {
 
   curve($("curve"), d.curve, c.start);
 
-  table($("positions"), ["Coin", "Seit", "Kaufkurs", "Kurs", "Stop", "Ziel", "Wert", "Ergebnis", "Grund"],
-    d.positions.map(p => [[p.coin], [when(p.since), "num"], [num(p.entry), "num"], [num(p.mark), "num"], [num(p.stop), "num"], [num(p.target), "num"],
+  table($("positions"), ["Coin", "Seit", "Kaufkurs", "Kurs", "Stop", "Teilgewinn-Ziel", "Wert", "Ergebnis", "Grund"],
+    d.positions.map(p => [[p.coin], [when(p.since), "num"], [num(p.entry), "num"], [num(p.mark), "num"], [num(p.stop), "num"], [p.partial ? "genommen" : num(p.target), "num"],
       [usd(p.value), "num"], [`${usd(p.pnl, true)} (${pct(p.ret)})`, "num " + sgn(p.pnl)], [p.reason, "why"]]),
     "Kein Coin im Bestand, das Spot-Konto liegt vollständig in USDT.");
 
@@ -192,7 +192,8 @@ function render(d) {
   r.append(
     li("Universum:", `Alle KuCoin-Spot-Coins gegen USDT mit mindestens ${(c.min_volume / 1e6).toLocaleString("de-DE")} Mio. USDT Tagesumsatz und ${c.sma_n + 1} Tagen Historie. Neue Coins rutschen von selbst hinein, sobald sie beides haben. Stablecoins und Hebel-Token sind ausgeschlossen.`),
     li("Kauf:", `Tagesschluss über dem Hoch der letzten ${c.high_n} Tage, bei mindestens ${c.vol_mult}-fachem Umsatz und über dem ${c.sma_n}-Tage-Durchschnitt. Gekauft wird kurz nach Mitternacht UTC.`),
-    li("Verkauf:", `Stop ${pct(c.hard_stop, 0)} unter dem Kaufkurs, nachgezogen auf ${pct(c.trail_stop, 0)} unter dem höchsten Tagesschluss, oder Gewinnmitnahme bei +${pct(c.take_profit, 0)}.`),
+    li("Teilgewinn:", `Bei +${pct(c.partial_at, 0)} wird die Hälfte verkauft und der Stop auf den Einstand gezogen. Der Rest läuft weiter, solange der Coin steigt.`),
+    li("Verkauf:", `Stop ${pct(c.hard_stop, 0)} unter dem Kaufkurs, nachgezogen auf ${pct(c.trail_stop, 0)} unter dem höchsten Tagesschluss.`),
     li("Größe:", `${usd(c.size)} je Coin, höchstens ${c.max_positions} gleichzeitig.`)
   );
 
@@ -201,8 +202,9 @@ function render(d) {
   bt.append(
     li("Zeitraum:", `${day(b.from)} bis ${day(b.to)}, ${b.trades} Trades, mit 0,1 % Gebühr und 0,3 % Slippage je Seite.`),
     li("Ergebnis:", `${pct(b.cagr, 0)} pro Jahr auf das Spot-Konto bei einem größten Rückgang von ${pct(b.max_dd, 0)}. Nur ${pct(b.win_rate, 0)} der Trades waren Gewinner, im Schnitt ${usd(b.avg_win, true)} gegen ${usd(b.avg_loss, true)}.`),
-    li("Sehr ungleich verteilt:", `Ein einziger Monat brachte ${pct(b.best_month, 0)}, nur ${b.months_up} von ${b.months} Monaten lagen im Plus.`),
-    li("Empfindlich:", "Mit 0,6 % Slippage je Seite statt 0,3 % wäre das Ergebnis negativ gewesen. Bei den kleineren Coins hängt also viel an der Ausführung."),
+    li("Sehr ungleich verteilt:", `Der beste Monat brachte ${pct(b.best_month, 0)}, nur ${b.months_up} von ${b.months} Monaten lagen im Plus.`),
+    li("Wirkung des Teilgewinns:", `Mit der alten Regel (alles bei +40 % verkaufen) waren es ${pct(b.old_cagr, 0)} pro Jahr bei ${pct(b.old_dd, 0)} Rückgang. Wichtiger: Bei doppelter Slippage bleibt die neue Regel mit ${pct(b.slip_cagr, 0)} im Plus, die alte rutschte auf ${pct(b.old_slip_cagr, 0)}.`),
+    li("Was nicht funktioniert hat:", "Gewinner ganz ohne Teilverkauf mit weitem Abstand laufen zu lassen. Mit 20 bis 30 % Abstand gab der Bot im Test fast alle Gewinne wieder ab."),
     li("Zu günstig gerechnet:", "Der Test kennt nur Coins, die heute noch handelbar sind. Inzwischen gelöschte Coins fehlen, und die Regeln wurden an denselben Daten gewählt. Mit Coins unter 1 Mio. USDT Tagesumsatz verlor dieselbe Regel klar Geld.")
   );
 

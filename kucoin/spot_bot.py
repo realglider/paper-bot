@@ -5,7 +5,8 @@ Liest nur oeffentliche KuCoin-Spotdaten und fuehrt ein Scheinkonto (kein Konto, 
   * einmal am Tag alle liquiden USDT-Paare durchsuchen -- neue Coins kommen von selbst dazu,
     sobald sie genug Historie und Umsatz haben
   * Kauf bei Ausbruch ueber das 20-Tage-Hoch mit Volumenspitze und ueber dem 50-Tage-Schnitt
-  * feste 100 USDT je Position, Stop, nachgezogener Stop und Gewinnmitnahme
+  * feste 100 USDT je Position; bei +20 % wird die Haelfte verkauft und der Stop auf den
+    Einstand gezogen, der Rest laeuft mit nachgezogenem Stop weiter
   * Stops und Gewinnziel werden mit Minutenkerzen seit dem letzten Lauf nachgeprueft
 
 Nur Standardbibliothek, laeuft mit python3 >= 3.9.
@@ -39,7 +40,9 @@ PREFILTER_VOLUME = 300_000      # 24h-Umsatz, ab dem ein Coin ueberhaupt gepruef
 
 HARD_STOP = 0.12          # Verkauf 12 % unter dem Kaufkurs
 TRAIL_STOP = 0.15         # oder 15 % unter dem hoechsten Tagesschluss seit dem Kauf
-TAKE_PROFIT = 0.40        # Gewinnmitnahme bei +40 %
+PARTIAL_AT = 0.20         # bei +20 % die Haelfte verkaufen ...
+PARTIAL_FRACTION = 0.5
+BE_LOCK = 0.005           # ... und den Stop auf Einstand + 0,5 % ziehen; der Rest laeuft weiter
 COOLDOWN_DAYS = 2         # so lange nach einem Verkauf kein neuer Kauf desselben Coins
 
 TAKER_FEE = 0.001         # 0,1 % je Seite (KuCoin Spot, Standardstufe)
@@ -50,9 +53,10 @@ EXCLUDE = {"USDC", "DAI", "TUSD", "FDUSD", "USDD", "USDE", "PYUSD", "EUR", "USD1
 
 # Ergebnis des Ruecktests dieser Einstellungen (kucoin/research/spotmom3.py, Tageskerzen aller
 # heute handelbaren KuCoin-USDT-Paare, 05.08.2024 bis 12.11.2026, 0,1 % Gebuehr, 0,3 % Slippage).
-BACKTEST = {"from": "2024-08-05", "to": "2026-11-12", "cagr": 0.117, "max_dd": -0.311,
-            "trades": 130, "win_rate": 0.33, "cagr_first": 0.104, "cagr_last": 0.058,
-            "months_up": 8, "months": 27, "best_month": 0.467, "avg_win": 26.3, "avg_loss": -11.3}
+BACKTEST = {"from": "2024-08-05", "to": "2026-11-12", "cagr": 0.141, "max_dd": -0.238,
+            "trades": 113, "win_rate": 0.40, "cagr_first": 0.204, "cagr_last": 0.069,
+            "months_up": 10, "months": 27, "best_month": 0.308, "avg_win": 22.0, "avg_loss": -12.0,
+            "slip_cagr": 0.11, "old_cagr": 0.147, "old_dd": -0.293, "old_slip_cagr": -0.031}
 
 API = "https://api.kucoin.com"
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -91,18 +95,27 @@ def signal(days: list) -> dict | None:
             "sma": sma, "vol_med": vol_med, "volume": d[6], "liquid": vol_med > MIN_MEDIAN_VOLUME}
 
 
-def stop_level(entry: float, peak: float) -> float:
-    return max(entry * (1 - HARD_STOP), peak * (1 - TRAIL_STOP))
+def stop_level(entry: float, peak: float, partial: bool = False) -> float:
+    stop = max(entry * (1 - HARD_STOP), peak * (1 - TRAIL_STOP))
+    return max(stop, entry * (1 + BE_LOCK)) if partial else stop
 
 
-def exit_hit(stop: float, target: float, candles: list) -> tuple[int, float, str] | None:
-    """Erste Kerze mit Stop oder Gewinnziel. Liegt beides in einer Kerze, zaehlt der Stop."""
+def walk(entry: float, peak: float, partial: bool, candles: list) -> list:
+    """Kerzen der Reihe nach durchgehen -> Ereignisse [("partial"|"stop", Zeit, Kurs), ...].
+
+    In jeder Kerze zaehlt zuerst der Stop (vorsichtige Annahme). Nach dem Teilgewinn bei
+    +PARTIAL_AT liegt der Stop mindestens auf Einstand + BE_LOCK.
+    """
+    events, target = [], entry * (1 + PARTIAL_AT)
     for b in candles:
+        stop = stop_level(entry, peak, partial)
         if b[3] <= stop:
-            return b[0], min(b[1], stop), "stop"       # Kurslücke: schlechter als der Stop
-        if b[2] >= target:
-            return b[0], max(b[1], target), "target"
-    return None
+            events.append(("stop", b[0], min(b[1], stop)))     # Kurslücke: schlechter als der Stop
+            break
+        if not partial and b[2] >= target:
+            events.append(("partial", b[0], max(b[1], target)))  # Limit-Order am Ziel
+            partial = True
+    return events
 
 
 def buy_qty(cash: float, price: float, increment: float) -> float:
@@ -222,45 +235,66 @@ class Account:
         cost, fee = qty * price, qty * price * TAKER_FEE
         self.s["cash"] -= cost + fee
         self.s["fees"] += fee
-        self.pos[coin] = {"qty": qty, "entry": price, "peak": price, "ts": self.now,
-                          "checked": self.now, "fee": fee, "reason": reason}
+        self.pos[coin] = {"qty": qty, "qty0": qty, "entry": price, "peak": price, "ts": self.now,
+                          "checked": self.now, "fee": fee, "reason": reason,
+                          "partial": False, "realized": 0.0}
         self.marks[coin] = price
         print(f"  KAUF {coin} {qty:g} @ {price:g} = {cost:.2f} USDT ({reason})")
 
+    def take_partial(self, coin, price, ts, increment=None):
+        """Teilgewinn: die Haelfte verkaufen, der Stop liegt danach mindestens am Einstand."""
+        p = self.pos[coin]
+        p.setdefault("qty0", p["qty"])
+        p.setdefault("realized", 0.0)
+        q = p["qty"] * PARTIAL_FRACTION
+        if increment:
+            q = round(math.floor(q / increment + 1e-9) * increment, 10)
+        fee = q * price * TAKER_FEE
+        self.s["cash"] += q * price - fee
+        self.s["fees"] += fee
+        p["realized"] += q * (price - p["entry"]) - fee
+        p["qty"] = round(p["qty"] - q, 10)
+        p["partial"] = True
+        p["partial_ts"] = ts
+        print(f"  TEILGEWINN {coin}: {q:g} @ {price:g}, Stop mindestens am Einstand")
+
     def sell(self, coin, price, ts, why):
         p = self.pos.pop(coin)
+        qty0 = p.get("qty0", p["qty"])
         proceeds, fee = p["qty"] * price, p["qty"] * price * TAKER_FEE
         self.s["cash"] += proceeds - fee
         self.s["fees"] += fee
         self.s["last_exit"][coin] = ts
-        net = p["qty"] * (price - p["entry"]) - fee - p["fee"]
+        net = p["qty"] * (price - p["entry"]) - fee - p["fee"] + p.get("realized", 0.0)
         self.trades.append({
-            "coin": coin, "qty": p["qty"], "entry": p["entry"], "exit": price,
+            "coin": coin, "qty": qty0, "entry": p["entry"], "exit": price,
             "entry_ts": iso(p["ts"]), "exit_ts": iso(ts),
-            "notional": round(p["qty"] * p["entry"], 2), "fees": round(fee + p["fee"], 4),
-            "pnl": round(net, 4), "ret": round(net / (p["qty"] * p["entry"]), 4),
+            "notional": round(qty0 * p["entry"], 2), "fees": round(fee + p["fee"], 4),
+            "pnl": round(net, 4), "ret": round(net / (qty0 * p["entry"]), 4),
+            "partial": bool(p.get("partial")),
             "reason": p["reason"], "exit_reason": why})
         print(f"  VERKAUF {coin} @ {price:g} ({why}) Ergebnis {net:+.2f} USDT")
         return net
 
 
 def check_exits(acc: Account) -> None:
+    """Stop und Teilgewinn-Ziel mit den Kerzen seit dem letzten Lauf nachpruefen."""
     for coin in list(acc.pos):
         p = acc.pos[coin]
         cs = [b for b in candles_since(coin + "-USDT", p["checked"], acc.now) if b[0] >= p["checked"]]
-        stop, target = stop_level(p["entry"], p["peak"]), p["entry"] * (1 + TAKE_PROFIT)
-        # Die Minute des Kaufs zaehlt nicht mit: ihr Tief kann vor dem Kauf liegen.
-        hit = exit_hit(stop, target, [b for b in cs if b[0] >= p["ts"]])
         if cs:
             p["checked"] = cs[-1][0]
             acc.marks[coin] = cs[-1][4]
-        if hit:
-            t, px, kind = hit
-            if kind == "target":
-                acc.sell(coin, px, t, "Gewinnziel +40 %")          # Limit-Order, keine Slippage
+        # Die Minute des Kaufs zaehlt nicht mit: ihr Tief kann vor dem Kauf liegen.
+        events = walk(p["entry"], p["peak"], bool(p.get("partial")), [b for b in cs if b[0] >= p["ts"]])
+        for kind, t, px in events:
+            if kind == "partial":
+                acc.take_partial(coin, px, t, acc.s.get("increments", {}).get(coin))
             else:
-                trailing = p["peak"] * (1 - TRAIL_STOP) > p["entry"] * (1 - HARD_STOP)
-                acc.sell(coin, px * (1 - SLIPPAGE), t, "nachgezogener Stop" if trailing else "Stop")
+                trailing = p["peak"] * (1 - TRAIL_STOP) > p["entry"] * (1 + (BE_LOCK if p.get("partial") else -HARD_STOP))
+                why = ("nachgezogener Stop" if trailing else
+                       "Stop am Einstand nach Teilgewinn" if p.get("partial") else "Stop")
+                acc.sell(coin, px * (1 - SLIPPAGE), t, why)
 
 
 def scan(acc: Account) -> int:
@@ -271,6 +305,7 @@ def scan(acc: Account) -> int:
     errors = 0
     meta = {x["baseCurrency"]: float(x["baseIncrement"]) for x in api("/api/v2/symbols")
             if x["quoteCurrency"] == "USDT" and x["enableTrading"]}
+    acc.s["increments"] = {c: meta[c] for c in acc.pos if c in meta}
     tick = {t["symbol"][:-5]: t for t in api("/api/v1/market/allTickers")["ticker"]
             if t["symbol"].endswith("-USDT")}
     cands = [c for c, t in tick.items() if c in meta and not is_excluded(c)
@@ -313,6 +348,7 @@ def scan(acc: Account) -> int:
                 px = ask * (1 + SLIPPAGE)
                 qty = buy_qty(acc.s["cash"], px, meta[coin])
                 if qty:
+                    acc.s["increments"][coin] = meta[coin]
                     acc.buy(coin, qty, px, f"über 20-Tage-Hoch {sg['high']:g} bei "
                                            f"{sg['vol_ratio']:.1f}-fachem Umsatz")
                     sg["status"] = "gekauft"
@@ -354,12 +390,13 @@ def build_dashboard(acc: Account, run_errors: int) -> None:
     positions = []
     for coin, p in acc.pos.items():
         mark = acc.marks.get(coin, p["entry"])
-        stop = stop_level(p["entry"], p["peak"])
+        stop = stop_level(p["entry"], p["peak"], bool(p.get("partial")))
         positions.append({
             "coin": coin, "qty": p["qty"], "entry": p["entry"], "mark": mark, "stop": stop,
-            "target": p["entry"] * (1 + TAKE_PROFIT), "since": iso(p["ts"]),
+            "target": None if p.get("partial") else p["entry"] * (1 + PARTIAL_AT),
+            "partial": bool(p.get("partial")), "since": iso(p["ts"]),
             "value": round(p["qty"] * mark, 2),
-            "pnl": round(p["qty"] * (mark - p["entry"]) - p["fee"], 2),
+            "pnl": round(p["qty"] * (mark - p["entry"]) - p["fee"] + p.get("realized", 0.0), 2),
             "ret": round(mark / p["entry"] - 1, 4), "reason": p["reason"]})
     errs = []
     if os.path.exists(ERRORS_LOG):
@@ -370,7 +407,7 @@ def build_dashboard(acc: Account, run_errors: int) -> None:
         "config": {"start": START_EQUITY, "size": POSITION_SIZE, "max_positions": MAX_POSITIONS,
                    "high_n": HIGH_N, "vol_mult": VOL_MULT, "sma_n": SMA_N,
                    "min_volume": MIN_MEDIAN_VOLUME, "hard_stop": HARD_STOP, "trail_stop": TRAIL_STOP,
-                   "take_profit": TAKE_PROFIT, "fee": TAKER_FEE, "backtest": BACKTEST},
+                   "partial_at": PARTIAL_AT, "partial_fraction": PARTIAL_FRACTION, "fee": TAKER_FEE, "backtest": BACKTEST},
         "summary": {
             "equity": round(eq_now, 2), "pnl": round(eq_now - START_EQUITY, 2),
             "ret": round(eq_now / START_EQUITY - 1, 4), "max_dd": round(dd, 4),

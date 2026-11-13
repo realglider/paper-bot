@@ -51,11 +51,11 @@ def sig_bb_mr(A,idx,n=96,z=2.5,**k):
     return c<m-z*s, c>m+z*s, c>m, c<m
 SIG={"donchian":sig_donchian,"ema":sig_ema,"tsmom":sig_tsmom,"xsmom":sig_xsmom,"rsi_mr":sig_rsi_mr,"bb_mr":sig_bb_mr}
 
-def run(idx,S,A,F,name,p,risk=0.01,stop_k=3.0,trail=True,atr_n=96,max_pos=1.5,max_gross=3.0,side="both",min_notional=0.0,frac=0.0,max_risk=1.0,eq0=1000.0,t0=None,t1=None,cols=None):
+def run(idx,S,A,F,name,p,risk=0.01,stop_k=3.0,trail=True,atr_n=96,max_pos=1.5,max_gross=3.0,side="both",min_notional=0.0,frac=0.0,max_risk=1.0,be_r=None,be_lock=0.0,part_r=None,part_frac=0.5,trail_k2=None,eq0=1000.0,t0=None,t1=None,cols=None):
     el,es,xl,xs=SIG[name](A,idx,**p)
     at=atr(A,atr_n); o,h,l,c=A["o"],A["h"],A["l"],A["c"]
     T,N=c.shape; cols=range(N) if cols is None else cols
-    blk=np.zeros(N); qty=np.zeros(N); stop=np.zeros(N); ent=np.zeros(N); cash=eq0; eq=np.full(T,np.nan); trades=[]
+    r0=np.zeros(N); st=np.zeros(N,dtype=int); acc=np.zeros(N); blk=np.zeros(N); qty=np.zeros(N); stop=np.zeros(N); ent=np.zeros(N); cash=eq0; eq=np.full(T,np.nan); trades=[]
     a=0 if t0 is None else int(np.searchsorted(idx,t0)); b=T if t1 is None else int(np.searchsorted(idx,t1))
     lastc=np.where(np.isnan(c[a]),0,c[a]) if a<T else np.zeros(N)
     equity=eq0
@@ -66,7 +66,7 @@ def run(idx,S,A,F,name,p,risk=0.01,stop_k=3.0,trail=True,atr_n=96,max_pos=1.5,ma
             # 1) Signal vom Vorbalken -> Ausfuehrung zur Eroeffnung
             if q!=0 and ((q>0 and xl[t-1,i]) or (q<0 and xs[t-1,i])):
                 px=o[t,i]*(1-SLIP*np.sign(q)); pnl=q*(px-ent[i])-abs(q)*px*FEE
-                cash+=pnl; trades.append(pnl); qty[i]=q=0
+                cash+=pnl; trades.append(pnl+acc[i]); qty[i]=q=0
             if blk[i]==1 and not el[t-1,i]: blk[i]=0
             if blk[i]==-1 and not es[t-1,i]: blk[i]=0
             if q==0 and not np.isnan(at[t-1,i]):
@@ -76,17 +76,26 @@ def run(idx,S,A,F,name,p,risk=0.01,stop_k=3.0,trail=True,atr_n=96,max_pos=1.5,ma
                     notional=min(max(equity*risk/(dist/px),min_notional,equity*frac), equity*max_pos)
                     gross=np.nansum(np.abs(qty)*lastc)
                     if gross+notional<=equity*max_gross and notional>5 and notional*dist/px<=equity*max_risk:
-                        qty[i]=q=d*notional/px; ent[i]=px; stop[i]=px-d*dist; cash-=notional*FEE
+                        qty[i]=q=d*notional/px; ent[i]=px; stop[i]=px-d*dist; cash-=notional*FEE; r0[i]=dist; st[i]=0; acc[i]=-notional*FEE
             # 2) Stop innerhalb des Balkens
             if q>0 and l[t,i]<=stop[i]:
-                px=min(o[t,i],stop[i])*(1-SLIP); pnl=q*(px-ent[i])-q*px*FEE; cash+=pnl; trades.append(pnl); qty[i]=q=0; blk[i]=1
+                px=min(o[t,i],stop[i])*(1-SLIP); pnl=q*(px-ent[i])-q*px*FEE; cash+=pnl; trades.append(pnl+acc[i]); qty[i]=q=0; blk[i]=1
             elif q<0 and h[t,i]>=stop[i]:
-                px=max(o[t,i],stop[i])*(1+SLIP); pnl=q*(px-ent[i])-abs(q)*px*FEE; cash+=pnl; trades.append(pnl); qty[i]=q=0; blk[i]=-1
+                px=max(o[t,i],stop[i])*(1+SLIP); pnl=q*(px-ent[i])-abs(q)*px*FEE; cash+=pnl; trades.append(pnl+acc[i]); qty[i]=q=0; blk[i]=-1
+            # 2b) Teilgewinn und Stop auf Einstand (nach dem Stop geprueft = vorsichtige Annahme)
+            if q!=0:
+                d=1 if q>0 else -1; fav=(h[t,i]-ent[i]) if q>0 else (ent[i]-l[t,i])
+                if part_r is not None and not (st[i]&1) and fav>=part_r*r0[i]:
+                    lvl=ent[i]+d*part_r*r0[i]; px=max(o[t,i],lvl) if q>0 else min(o[t,i],lvl); dq=q*part_frac
+                    pnl=dq*(px-ent[i])-abs(dq)*px*FEE; cash+=pnl; acc[i]+=pnl; qty[i]=q=q-dq; st[i]|=1
+                if be_r is not None and not (st[i]&2) and fav>=be_r*r0[i]:
+                    st[i]|=2; be=ent[i]+d*be_lock*r0[i]; stop[i]=max(stop[i],be) if q>0 else min(stop[i],be)
             # 3) Funding, Stop nachziehen
             if q!=0:
                 if F[t,i]!=0: cash-=q*c[t,i]*F[t,i]
                 if trail and not np.isnan(at[t,i]):
-                    stop[i]=max(stop[i],c[t,i]-stop_k*at[t,i]) if q>0 else min(stop[i],c[t,i]+stop_k*at[t,i])
+                    kk=trail_k2 if (trail_k2 and st[i]) else stop_k
+                    stop[i]=max(stop[i],c[t,i]-kk*at[t,i]) if q>0 else min(stop[i],c[t,i]+kk*at[t,i])
             lastc[i]=c[t,i]
         equity=cash+np.sum(qty*(lastc-ent)); eq[t]=equity
         if equity<=0: eq[t:]=0; break

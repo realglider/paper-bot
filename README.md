@@ -7,6 +7,7 @@ Paper-Trading-Bot für KuCoin, ohne Konto und ohne echte Orders. Ein Scheinkonto
 Trendfolge auf 16 großen USDT-Perpetuals, long und short, 500 USDT Futures-Konto.
 
 - **Einstieg:** Schlusskurs der Stundenkerze über dem 40-Tage-Hoch (long) oder unter dem 40-Tage-Tief (short).
+- **Teilgewinn:** Bei +1 R (Gewinn so groß wie das anfängliche Risiko) wird die Hälfte verkauft und der Stop knapp über den Einstand gezogen.
 - **Ausstieg:** Gegenkanal der letzten 20 Tage oder Stop bei 12 × Stunden-ATR (rund 2,5 Tagesspannen), im Gewinn nachgezogen.
 - **Größe:** Mindestens 100 USDT je Position. Ziel sind 5 USDT Verlust am Stop. Würde die Mindestgröße mehr als 10 USDT (1 % des Gesamtkapitals) riskieren, wird der Trade ausgelassen.
 - **Hebel:** Alle Positionen zusammen höchstens 3.000 USDT, also 3 × Gesamtkapital. Erlaubt wären 10 ×.
@@ -18,16 +19,19 @@ Momentum-Scanner über den ganzen KuCoin-Spotmarkt, 500 USDT Spot-Konto, kein He
 
 - **Universum:** Alle USDT-Paare mit mindestens 1 Mio. USDT Tagesumsatz (Median 20 Tage) und 51 Tagen Historie. Neue Coins kommen von selbst dazu, sobald sie beides haben. Stablecoins und Hebel-Token sind ausgeschlossen.
 - **Kauf:** Tagesschluss über dem 20-Tage-Hoch, mindestens dreifacher Umsatz gegen den 20-Tage-Schnitt, über dem 50-Tage-Durchschnitt. Ausführung kurz nach Mitternacht UTC.
-- **Verkauf:** Stop 12 % unter dem Kaufkurs, nachgezogen auf 15 % unter dem höchsten Tagesschluss, oder Gewinnmitnahme bei +40 %.
+- **Teilgewinn:** Bei +20 % wird die Hälfte verkauft und der Stop auf den Einstand gezogen, der Rest läuft weiter.
+- **Verkauf:** Stop 12 % unter dem Kaufkurs, nachgezogen auf 15 % unter dem höchsten Tagesschluss.
 - **Größe:** 100 USDT je Coin, höchstens 5 gleichzeitig.
 - **Kosten:** 0,1 % Taker-Gebühr, 0,1 % Slippage.
 
 ## Was der Rücktest sagt (`kucoin/research/`)
 
-August 2024 bis November 2026, beide Teile zusammen: aus 1.000 wurden rund 1.440 USDT, etwa +17 % pro Jahr bei −23 % größtem Rückgang, 10 von 27 Monaten im Plus.
+August 2024 bis November 2026, beide Teile zusammen: aus 1.000 wurden rund 1.420 USDT, etwa +17 % pro Jahr bei −16 % größtem Rückgang, 11 von 27 Monaten im Plus.
 
-- Futures-Teil allein: +23 % pro Jahr auf 500 USDT, −24 % Rückgang, 140 Trades, 39 % Gewinner.
-- Spot-Teil allein: +12 % pro Jahr auf 500 USDT, −31 % Rückgang, 130 Trades, 33 % Gewinner. Mit 0,6 % statt 0,3 % Slippage je Seite wäre er negativ gewesen.
+- Futures-Teil allein: +19 % pro Jahr auf 500 USDT, −14 % Rückgang, 132 Trades, 49 % Gewinner. Ohne Teilgewinn: +23 %, −24 %, 39 %.
+- Spot-Teil allein: +14 % pro Jahr auf 500 USDT, −24 % Rückgang, 113 Trades, 40 % Gewinner. Bei doppelter Slippage noch +11 %.
+
+Ausstiegsvarianten (`exits_fut.py`, `exits_spot.py`): Teilgewinn und Einstand-Stop schaffen keinen zusätzlichen Vorteil, senken aber den Rückgang. Gewinner ohne Teilverkauf mit weitem Abstand (20 bis 30 %) laufen zu lassen, hat im Spot-Test fast alle Gewinne wieder abgegeben.
 
 Die Zahlen sind zu günstig: Der Zeitraum ist kurz, die Regeln wurden an denselben Daten gewählt, und der Spot-Test kennt keine inzwischen gelöschten Coins.
 

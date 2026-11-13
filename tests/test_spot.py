@@ -42,14 +42,25 @@ class T(unittest.TestCase):
         self.assertAlmostEqual(f.stop_level(100, 100), 88)          # fester Stop
         self.assertAlmostEqual(f.stop_level(100, 110), 93.5)        # nachgezogen
         self.assertAlmostEqual(f.stop_level(100, 130), 110.5)       # Stop schon im Gewinn
+        self.assertAlmostEqual(f.stop_level(100, 105, True), 100.5) # nach Teilgewinn: Einstand
+        self.assertAlmostEqual(f.stop_level(100, 130, True), 110.5)
 
-    def test_exit_hit(self):
-        cs = [[1, 100, 101, 99, 100], [2, 100, 100, 87, 90], [3, 90, 150, 90, 145]]
-        self.assertEqual(f.exit_hit(88, 140, cs), (2, 88, "stop"))
-        self.assertEqual(f.exit_hit(80, 140, cs), (3, 140, "target"))
-        self.assertIsNone(f.exit_hit(80, 200, cs))
-        self.assertEqual(f.exit_hit(88, 140, [[5, 85, 86, 84, 85]]), (5, 85, "stop"))        # Kurslücke
-        self.assertEqual(f.exit_hit(88, 140, [[5, 100, 150, 80, 120]]), (5, 88, "stop"))     # beides: Stop zaehlt
+    def test_walk(self):
+        cs = [[1, 100, 101, 99, 100], [2, 100, 100, 87, 90]]
+        self.assertEqual(f.walk(100, 100, False, cs), [("stop", 2, 88)])
+        self.assertEqual(f.walk(100, 100, False, [[5, 85, 86, 84, 85]]), [("stop", 5, 85)])       # Kurslücke
+        # Teilgewinn bei +20 %, danach faellt der Kurs bis zum Einstand zurueck
+        cs = [[1, 100, 121, 100, 119], [2, 119, 119, 100, 101]]
+        ev = f.walk(100, 100, False, cs)
+        self.assertEqual([(k, t) for k, t, _ in ev], [("partial", 1), ("stop", 2)])
+        self.assertAlmostEqual(ev[0][2], 120)
+        self.assertAlmostEqual(ev[1][2], 100.5)
+        # Stop und Ziel in derselben Kerze: der Stop zaehlt
+        self.assertEqual(f.walk(100, 100, False, [[5, 100, 150, 80, 120]]), [("stop", 5, 88)])
+        # Teilgewinn schon genommen: kein zweiter
+        self.assertEqual(f.walk(100, 100, True, [[1, 110, 130, 109, 125]]), [])
+        # Eroeffnung ueber dem Ziel: Verkauf zur Eroeffnung
+        self.assertEqual(f.walk(100, 100, False, [[1, 125, 126, 124, 125]]), [("partial", 1, 125)])
 
     def test_buy_qty(self):
         self.assertAlmostEqual(f.buy_qty(500, 50, 0.001), 2.0)
@@ -63,11 +74,26 @@ class T(unittest.TestCase):
         self.assertAlmostEqual(acc.s["cash"], 500 - 100 - 0.1)
         acc.marks["SOL"] = 55.0
         self.assertAlmostEqual(acc.equity(), 500 - 0.1 + 10)
-        net = acc.sell("SOL", 70.0, 2_000_000, "Gewinnziel")
+        net = acc.sell("SOL", 70.0, 2_000_000, "Test")
         self.assertAlmostEqual(net, 40 - 0.1 - 0.14)
         self.assertAlmostEqual(acc.equity(), 500 + net)
         self.assertEqual(acc.s["last_exit"]["SOL"], 2_000_000)
         self.assertAlmostEqual(acc.trades[0]["ret"], round(net / 100, 4))
+
+    def test_partial_then_stop(self):
+        acc = f.Account({}, [], 1_000_000)
+        acc.buy("SOL", 2.0, 50.0, "Test")                     # 100 USDT
+        acc.take_partial("SOL", 60.0, 1_500_000, 0.001)       # 1 Stueck zu +20 %
+        p = acc.pos["SOL"]
+        self.assertAlmostEqual(p["qty"], 1.0)
+        self.assertTrue(p["partial"])
+        self.assertAlmostEqual(p["realized"], 10 - 0.06)
+        self.assertAlmostEqual(acc.s["cash"], 500 - 100.1 + 60 - 0.06)
+        net = acc.sell("SOL", 50.25, 2_000_000, "Stop am Einstand nach Teilgewinn")
+        self.assertAlmostEqual(net, 10 - 0.06 + 0.25 - 0.05025 - 0.1)
+        self.assertAlmostEqual(acc.equity(), 500 + net)
+        self.assertTrue(acc.trades[0]["partial"])
+        self.assertAlmostEqual(acc.trades[0]["notional"], 100)
 
 
 if __name__ == "__main__":

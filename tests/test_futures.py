@@ -88,5 +88,62 @@ class T(unittest.TestCase):
         self.assertAlmostEqual(acc.trades[0]["r"], round(net / 4.2, 2))
 
 
+class Partial(unittest.TestCase):
+    def test_walk_long(self):
+        # Einstieg 100, Stop 90 -> R = 10, Ziel 110, Einstand-Stop 100,5
+        cs = [bar(1, 100, 105, 99, 104), bar(2, 104, 111, 103, 110), bar(3, 110, 110, 100, 101)]
+        self.assertEqual(f.walk(1, 100, 90, 10, False, cs), [("partial", 2, 110), ("stop", 3, 100.5)])
+        self.assertEqual(f.walk(1, 100, 90, 10, False, cs[:1]), [])
+        self.assertEqual(f.walk(1, 100, 90, 10, True, cs), [])                 # Stop 90 nie erreicht
+        # Stop und Ziel in derselben Kerze: der Stop zaehlt
+        self.assertEqual(f.walk(1, 100, 90, 10, False, [bar(1, 100, 112, 89, 100)]), [("stop", 1, 90)])
+
+    def test_walk_short(self):
+        cs = [bar(1, 100, 101, 89, 90), bar(2, 90, 100, 90, 99)]
+        self.assertEqual(f.walk(-1, 100, 110, 10, False, cs), [("partial", 1, 90), ("stop", 2, 99.5)])
+
+    def test_partial_lots(self):
+        self.assertEqual(f.partial_lots(10), 5)
+        self.assertEqual(f.partial_lots(3), 1)
+        self.assertEqual(f.partial_lots(1), 0)          # ein Kontrakt laesst sich nicht teilen
+
+    def test_account_partial(self):
+        acc = f.Account({}, [], 1_000_000)
+        acc.open("SOL", 1, 10, 0.1, 100.0, 90.0, 0.8, "Test")       # 1 SOL = 100 $
+        fee_in = 100 * f.TAKER_FEE
+        acc.take_partial("SOL", 110.0, 1_500_000)
+        p = acc.pos["SOL"]
+        self.assertEqual(p["lots"], 5)
+        self.assertAlmostEqual(p["qty"], 0.5)
+        self.assertAlmostEqual(p["stop"], 100.5)
+        self.assertAlmostEqual(p["realized"], 5 - 55 * f.TAKER_FEE)
+        net = acc.close("SOL", 100.5, 2_000_000, "Stop am Einstand nach Teilgewinn")
+        self.assertAlmostEqual(net, 5 - 55 * f.TAKER_FEE + 0.25 - 50.25 * f.TAKER_FEE - fee_in)
+        self.assertAlmostEqual(acc.equity(), f.START_EQUITY + net)
+        self.assertTrue(acc.trades[0]["partial"])
+        self.assertAlmostEqual(acc.trades[0]["notional"], 100)
+
+    def test_single_lot_still_moves_stop(self):
+        acc = f.Account({}, [], 1_000_000)
+        acc.open("XBT", -1, 1, 0.001, 70000.0, 73000.0, 250.0, "Test")
+        acc.take_partial("XBT", 67000.0, 1_500_000)
+        p = acc.pos["XBT"]
+        self.assertEqual(p["lots"], 1)
+        self.assertAlmostEqual(p["stop"], 70000 - 0.05 * 3000)
+        self.assertTrue(p["partial"])
+
+    def test_legacy_position_without_new_fields(self):
+        # Position aus einem Lauf vor dieser Aenderung
+        acc = f.Account({"positions": {"BNB": {"side": -1, "lots": 16, "qty": 0.16, "entry": 646.5,
+                         "stop": 676.6, "stop0": 676.6, "atr": 2.5, "ts": 0, "checked": 0, "funded": 0,
+                         "fee": 0.06, "funding": 0.0, "reason": "alt", "margin": 10.3}}}, [], 1_000_000)
+        acc.take_partial("BNB", 616.4, 500_000)
+        self.assertEqual(acc.pos["BNB"]["lots"], 8)
+        self.assertAlmostEqual(acc.pos["BNB"]["qty"], 0.08)
+        net = acc.close("BNB", 645.0, 900_000, "Test")
+        self.assertAlmostEqual(acc.trades[0]["notional"], round(0.16 * 646.5, 2))
+        self.assertGreater(net, 0)
+
+
 if __name__ == "__main__":
     unittest.main()

@@ -11,6 +11,7 @@ Skripte, mit denen die Regeln des Bots ausgewählt wurden. Brauchen `numpy` und 
 | `tv.py` | Nachbau bekannter TradingView-Strategien |
 | `listings.py` | Kursverlauf nach neuen Listings (`python3 listings.py fut` bzw. `spot`) |
 | `spotmom.py`, `spotmom2.py`, `spotmom3.py` | Spot-Momentum über den ganzen Markt, Robustheit, gewählte Variante |
+| `exits_fut.py`, `exits_spot.py` | Ausstiegsvarianten: Teilgewinne, Stop auf Einstand, Gewinner laufen lassen |
 | `spot.py` | verworfene Spot-Trendfolge auf 16 Coins |
 
 Kosten im Test: Futures 0,06 % Gebühr und 0,04 % Slippage je Seite plus echte Funding-Raten. Spot 0,1 % Gebühr und 0,3 % Slippage je Seite.

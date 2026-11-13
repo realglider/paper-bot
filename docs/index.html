@@ -85,6 +85,7 @@ footer{color:var(--mute);font-size:12px;margin-top:18px}
       <li><b>Futures, 16 große Coins:</b> Bricht ein Coin sein 40-Tage-Hoch, geht der Bot long, beim 40-Tage-Tief short. Hier lohnt der Hebel, weil nur Futures auch an fallenden Kursen verdienen können.</li>
       <li><b>Spot, ganzer Markt:</b> Einmal am Tag werden alle liquiden KuCoin-Coins durchsucht. Gekauft wird ein Ausbruch über das 20-Tage-Hoch mit mindestens dreifachem Umsatz. Neue Coins kommen von selbst dazu, sobald sie genug Umsatz und rund sieben Wochen Historie haben.</li>
       <li><b>Frisch gelistete Coins kauft der Bot nicht.</b> In den KuCoin-Daten lag ein neu gelisteter Spot-Coin nach 90 Tagen typischerweise 50 % unter seinem ersten Schlusskurs, nur jeder fünfte lag im Plus.</li>
+      <li><b>Gewinne sichern:</b> Läuft eine Position gut (Futures: Gewinn so groß wie das anfängliche Risiko, Spot: +20 %), verkauft der Bot die Hälfte und zieht den Stop auf den Einstand. Der Rest läuft mit nachgezogenem Stop weiter.</li>
       <li><b>Größe:</b> Mindestens 100 USDT je Position. Am Stop gehen höchstens rund 1 % des Gesamtkapitals verloren, sonst lässt der Bot den Trade aus.</li>
     </ul>
   </div>
@@ -92,8 +93,9 @@ footer{color:var(--mute);font-size:12px;margin-top:18px}
   <div class="card">
     <h2>Zum Vergleich: Rücktest beider Teile zusammen</h2>
     <ul class="rules">
-      <li><b>Zeitraum:</b> 08/2024 bis 11/2026, aus 1.000 USDT wurden rund 1.440.</li>
-      <li><b>Ergebnis:</b> etwa 17 % pro Jahr bei einem größten Rückgang von −23 %. Nur 10 von 27 Monaten lagen im Plus.</li>
+      <li><b>Zeitraum:</b> 08/2024 bis 11/2026, aus 1.000 USDT wurden rund 1.420.</li>
+      <li><b>Ergebnis:</b> etwa 17 % pro Jahr bei einem größten Rückgang von −16 %. Nur 11 von 27 Monaten lagen im Plus.</li>
+      <li><b>Wirkung der Teilgewinne:</b> Die Rendite blieb etwa gleich, der größte Rückgang sank von −23 % auf −16 %. Einen neuen Vorteil schaffen sie nicht, sie machen den Verlauf ruhiger.</li>
       <li><b>Einordnung:</b> 27 Monate sind wenig, die Regeln wurden an denselben Daten gewählt, und der Spot-Test kennt keine inzwischen gelöschten Coins. Realistisch ist alles zwischen einem Verlust und diesem Wert.</li>
     </ul>
   </div>

@@ -173,8 +173,8 @@ function render(d) {
 
   curve($("curve"), d.curve, c.start);
 
-  table($("positions"), ["Coin", "Richtung", "Seit", "Einstieg", "Kurs", "Stop", "Wert", "Ergebnis", "Risiko bis Stop", "Grund"],
-    d.positions.map(p => [[p.coin], [p.side], [when(p.since), "num"], [num(p.entry), "num"], [num(p.mark), "num"], [num(p.stop), "num"],
+  table($("positions"), ["Coin", "Richtung", "Seit", "Einstieg", "Kurs", "Stop", "Teilgewinn-Ziel", "Wert", "Ergebnis", "Risiko bis Stop", "Grund"],
+    d.positions.map(p => [[p.coin], [p.side], [when(p.since), "num"], [num(p.entry), "num"], [num(p.mark), "num"], [num(p.stop), "num"], [p.partial ? "genommen" : p.target ? num(p.target) : "–", "num"],
       [usd(p.notional), "num"], [usd(p.pnl, true), "num " + sgn(p.pnl)], [usd(p.risk), "num"], [p.reason, "why"]]),
     "Keine offene Position. Der Bot steigt erst ein, wenn ein Coin aus seiner Spanne der letzten Tage ausbricht.");
 
@@ -193,7 +193,8 @@ function render(d) {
   const li = (b, t) => { const e = el("li"); e.append(el("b", "", b), document.createTextNode(" " + t)); return e; };
   r.append(
     li("Einstieg:", c.strategy === "donchian" ? `Schlusskurs der Stundenkerze über dem Hoch (long) oder unter dem Tief (short) der letzten ${c.n / 24} Tage.` : "Schneller Durchschnitt kreuzt den langsamen."),
-    li("Ausstieg:", c.strategy === "donchian" ? `Gegenkanal der letzten ${c.exit / 24} Tage oder Stop bei ${c.stop_atr} × Stunden-ATR (rund 2,5 Tagesspannen), der im Gewinn nachgezogen wird.` : `Gegensignal oder Stop bei ${c.stop_atr} × ATR.`),
+    li("Teilgewinn:", `Bei +${c.partial_r} R wird die Hälfte verkauft und der Stop knapp über den Einstand gezogen. Ab da endet der Trade im Normalfall nicht mehr im Minus (Kurslücken ausgenommen), der Rest läuft weiter.`),
+    li("Ausstieg:", `Gegenkanal der letzten ${c.exit / 24} Tage oder Stop bei ${c.stop_atr} × Stunden-ATR (rund 2,5 Tagesspannen), der im Gewinn nachgezogen wird.`),
     li("Größe:", `Mindestens ${usd(c.min_notional)} je Position. Ziel ist, dass ein Stop ${pct(c.risk, 0)} des Futures-Kontos kostet. Würde schon die Mindestgröße mehr als ${pct(c.max_risk, 0)} riskieren, lässt der Bot den Trade aus. 1 R ist der Verlust am ersten Stop.`),
     li("Hebel:", `Alle Positionen zusammen höchstens ${c.max_gross}× Futures-Konto, das sind ${c.max_gross / 2}× das Gesamtkapital. Erlaubt wären ${c.account_leverage}×.`)
   );
@@ -204,6 +205,7 @@ function render(d) {
     li("Zeitraum:", `${day(b.from)} bis ${day(b.to)}, ${c.coins.length} Coins, ${b.trades} Trades, mit Gebühren, Slippage und Funding.`),
     li("Ergebnis:", `${pct(b.cagr, 0)} pro Jahr auf das Futures-Konto bei einem größten Rückgang von ${pct(b.max_dd, 0)}. Nur ${pct(b.win_rate, 0)} der Trades waren Gewinner.`),
     li("Ungleich verteilt:", `Erste 15 Monate ${pct(b.cagr_first, 0)} pro Jahr, letzte 12 Monate ${pct(b.cagr_last, 0)}. ${b.months_up} von ${b.months} Monaten im Plus, die fünf besten Trades brachten ${pct(b.top5_share, 0)} des Gewinns.`),
+    li("Wirkung des Teilgewinns:", `Ohne Teilgewinn waren es ${pct(b.plain_cagr, 0)} pro Jahr bei ${pct(b.plain_dd, 0)} Rückgang und ${pct(b.plain_win, 0)} Gewinnern. Der Teilgewinn kostet also etwas Rendite und halbiert dafür fast den Rückgang.`),
     li("Einordnung:", "27 Monate sind wenig, und Stop-Weite sowie Größenregel wurden an denselben Daten gewählt. Der Rücktest ist deshalb eher zu günstig. Schnellere Varianten und Gegentrend-Strategien haben im selben Test Geld verloren.")
   );
 
