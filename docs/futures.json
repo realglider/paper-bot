@@ -1,5 +1,5 @@
 {
- "updated": "2026-11-14T14:30:55Z",
+ "updated": "2026-11-14T14:35:14Z",
  "started": "2026-11-12T19:50:01Z",
  "config": {
   "start": 500.0,
@@ -53,9 +53,9 @@
   }
  },
  "summary": {
-  "equity": 507.02,
-  "pnl": 7.02,
-  "ret": 0.014,
+  "equity": 507.57,
+  "pnl": 7.57,
+  "ret": 0.0151,
   "max_dd": -0.0071,
   "trades": 0,
   "wins": 0,
@@ -63,10 +63,10 @@
   "profit_factor": null,
   "avg_win": null,
   "avg_loss": null,
-  "fees": 0.06,
+  "fees": 0.09,
   "funding": -0.0,
-  "gross": 96.37,
-  "leverage": 0.19,
+  "gross": 47.89,
+  "leverage": 0.09,
   "open": 1,
   "liquidated": null
  },
@@ -74,17 +74,17 @@
   {
    "coin": "BNB",
    "side": "short",
-   "qty": 0.16,
+   "qty": 0.08,
    "entry": 646.530668,
-   "mark": 602.29,
-   "stop": 663.0200235095392,
+   "mark": 598.68,
+   "stop": 644.1322330581521,
    "since": "2026-11-13T03:02:02Z",
-   "notional": 96.37,
-   "margin": 10.34,
-   "pnl": 7.02,
-   "partial": false,
-   "target": 598.5619691630433,
-   "risk": 9.72,
+   "notional": 47.89,
+   "margin": 5.17,
+   "pnl": 7.57,
+   "partial": true,
+   "target": null,
+   "risk": 3.64,
    "reason": "Schluss 645.97 unter dem 960-h-Tief 648.87"
   }
  ],
@@ -2300,6 +2300,10 @@
   {
    "ts": "2026-11-14T14:30:55Z",
    "eq": 507.02
+  },
+  {
+   "ts": "2026-11-14T14:35:14Z",
+   "eq": 507.57
   }
  ],
  "watch": [
