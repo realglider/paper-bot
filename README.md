@@ -38,7 +38,21 @@ Zwei vorab festgelegte Tests (`split_short.py`), Übernahme nur bei Verbesserung
 
 Ausstiegsvarianten (`exits_fut.py`, `exits_spot.py`): Teilgewinn und Einstand-Stop schaffen keinen zusätzlichen Vorteil. Im Futures-Teil kosten sie Ertrag und senken den Rückgang, im Spot-Teil ändern sie wenig. Gewinner ohne Teilverkauf mit weitem Abstand (20 bis 30 %) laufen zu lassen, hat im Spot-Test fast alle Gewinne wieder abgegeben.
 
-Die Zahlen sind zu günstig: Der Zeitraum ist kurz, die Regeln wurden an denselben Daten gewählt, und der Spot-Test kennt keine inzwischen gelöschten Coins.
+### Fremdtest: Binance 2019 bis 08/2024, unveränderte Regeln (`oos_binance.py`, `oos_spot2.py`)
+
+Diese Daten lagen bei der Auswahl der Regeln nicht vor.
+
+| | Rendite pro Jahr | Größter Rückgang | Anmerkung |
+|---|---|---|---|
+| Futures-Teil wie live | +7 % | −31 % | 2019 bis 2022 leicht im Minus, Gewinn erst 2023/24. 2021 kein einziger Trade, weil die Mindestgröße bei hoher Schwankung alles ausließ |
+| Trendregel pur, Coins aus Sicht von 2019 | +5 % | −30 % | Longs +7,5 %, Shorts −2,4 % pro Jahr |
+| Spot-Regel wörtlich (ab 1 Mio. Umsatz) | −30 % | −96 % | auf Binance lässt die Schwelle 200 bis 340 Coins zu, darunter viele später gelöschte |
+| Spot-Regel, Schwelle an Binance angepasst (10 bis 20 Mio.) | +11 bis +14 % | −29 bis −41 % | verdient 2020/21, sonst um null oder im Minus |
+| Bitcoin halten | +64 % | −77 % | zum Vergleich |
+
+Folgerungen: Die Ergebnisse aus den 27 Entwicklungsmonaten waren deutlich zu günstig. Gelöschte Coins machen bei kleinen Coins den Unterschied zwischen −5 % und −30 % pro Jahr. Die Spot-Regel taugt nur für die meistgehandelten Coins.
+
+Die Zahlen des 27-Monats-Tests sind zu günstig: Der Zeitraum ist kurz, die Regeln wurden an denselben Daten gewählt, und der Spot-Test kennt keine inzwischen gelöschten Coins.
 
 Was sonst getestet und verworfen wurde:
 

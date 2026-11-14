@@ -13,6 +13,7 @@ Skripte, mit denen die Regeln des Bots ausgewählt wurden. Brauchen `numpy` und 
 | `spotmom.py`, `spotmom2.py`, `spotmom3.py` | Spot-Momentum über den ganzen Markt, Robustheit, gewählte Variante |
 | `exits_fut.py`, `exits_spot.py` | Ausstiegsvarianten: Teilgewinne, Stop auf Einstand, Gewinner laufen lassen |
 | `split_short.py` | vorab festgelegte Tests: Aufteilung 700/300 (übernommen), Short-Scanner (verworfen) |
+| `dl_bn.py`, `oos_binance.py`, `oos_spot2.py` | Fremdtest: unveränderte Regeln auf Binance-Daten 2019 bis 08/2024, inklusive gelöschter Coins |
 | `spot.py` | verworfene Spot-Trendfolge auf 16 Coins |
 
 Kosten im Test: Futures 0,06 % Gebühr und 0,04 % Slippage je Seite plus echte Funding-Raten. Spot 0,1 % Gebühr und 0,3 % Slippage je Seite.
