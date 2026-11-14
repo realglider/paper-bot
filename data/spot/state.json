@@ -1,5 +1,5 @@
 {
- "cash": 500.0,
+ "cash": 700.0,
  "positions": {},
  "last_exit": {},
  "last_scan": 1794614400000,
@@ -12,5 +12,6 @@
   "signals": []
  },
  "started": "2026-11-12T19:47:15Z",
- "increments": {}
+ "increments": {},
+ "split_v2": true
 }
