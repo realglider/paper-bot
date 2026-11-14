@@ -15,6 +15,7 @@ Skripte, mit denen die Regeln des Bots ausgewählt wurden. Brauchen `numpy` und 
 | `split_short.py` | vorab festgelegte Tests: Aufteilung 700/300 (übernommen), Short-Scanner (verworfen) |
 | `dl_bn.py`, `oos_binance.py`, `oos_spot2.py` | Fremdtest: unveränderte Regeln auf Binance-Daten 2019 bis 08/2024, inklusive gelöschter Coins |
 | `rot.py`, `rot_core.py`, `rot_short.py`, `rot_eval.py` | Strategie 2: Entwicklung auf 2019–2022, Prüfung auf 2023–08/2024, Schlusskontrolle auf KuCoin |
+| `smc.py` | Fibonacci-0,882-Rücklauf und Liquidity Sweep + Order Block als feste Regeln (beide verworfen) |
 | `spot.py` | verworfene Spot-Trendfolge auf 16 Coins |
 
 Kosten im Test: Futures 0,06 % Gebühr und 0,04 % Slippage je Seite plus echte Funding-Raten. Spot 0,1 % Gebühr und 0,3 % Slippage je Seite.

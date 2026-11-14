@@ -24,6 +24,19 @@ Entwicklung in drei getrennten Stufen (`kucoin/research/rot.py`, `rot_core.py`, 
 
 Lesart: Das Ergebnis wird mit jeder Stufe schwächer, der ehrlichste Wert ist die Schlusskontrolle. Die Rotation allein fiel in der Prüfung durch (−45 % Rückgang, weit hinter Bitcoin) und wurde deshalb mit dem Bitcoin-Kern kombiniert. Ein Short-Baustein für schlechte Marktlagen brachte in der Entwicklung nur 2022 Gewinn und verlor in der Prüfung, er ist nicht enthalten. Die Rechenfunktionen des Bots wurden an 30 Stichtagen gegen den Rücktest abgeglichen, ohne Abweichung.
 
+### Geprüft und verworfen: Fibonacci 0,882 und Liquidity Sweep + Order Block (`kucoin/research/smc.py`)
+
+Ergebnis je Trade in R (Vielfache des Anfangsrisikos) nach Kosten, 24 große Coins.
+
+| Regel | Entwicklung 2019–2022 | Prüfung 2023–08/2024 | Schlusskontrolle KuCoin |
+|---|---|---|---|
+| Fibonacci 0,882, Stop unter dem Ausgangstief, Ziel altes Hoch (1h) | −0,38 R, auch ohne Kosten −0,15 R | nicht weiter geprüft | |
+| Sweep + Order Block, 1h, Ziel 3R | +0,03 R | −0,17 R | |
+| Sweep + Order Block, 4h, Ziel 3R, Trendfilter (Kandidat) | +0,23 R (205 Trades) | +0,14 R (108) | 0,00 R (70) |
+| Sweep + Order Block, 4h, Ziel 3R ohne Filter | 0,00 R | +0,23 R | +0,22 R |
+
+Der tiefe Fibonacci-Rücklauf hat einen klar negativen Erwartungswert: Nach einem bestätigten Hoch läuft der Kurs häufiger weiter, als dass er am 0,882-Level dreht. Beim Sweep-Muster gibt es vor Kosten einen kleinen Vorteil, aber welche Variante vorn liegt, wechselt von Zeitraum zu Zeitraum. Der vorab gewählte Kandidat landete in der Schlusskontrolle bei null.
+
 # Strategie 1
 
 ## Futures-Teil (`kucoin/futures_bot.py`)
