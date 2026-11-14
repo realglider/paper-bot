@@ -27,9 +27,10 @@ import urllib.request
 # ----------------------------------------------------------------------------
 # Einstellungen
 # ----------------------------------------------------------------------------
-START_EQUITY = 500.0      # USDT im Spot-Konto
+START_EQUITY = 700.0      # USDT im Spot-Konto (300 liegen im Futures-Konto)
 POSITION_SIZE = 100.0     # USDT je Kauf
-MAX_POSITIONS = 5
+MAX_POSITIONS = 7
+TRANSFER_V2 = 200.0       # einmalige Umbuchung beim Wechsel von 500/500 auf 300/700
 
 HIGH_N = 20               # Schlusskurs ueber dem Hoch der letzten 20 Tage ...
 VOL_MULT = 3.0            # ... bei mindestens dreifachem Tagesumsatz (gegen den 20-Tage-Schnitt)
@@ -53,10 +54,10 @@ EXCLUDE = {"USDC", "DAI", "TUSD", "FDUSD", "USDD", "USDE", "PYUSD", "EUR", "USD1
 
 # Ergebnis des Ruecktests dieser Einstellungen (kucoin/research/spotmom3.py, Tageskerzen aller
 # heute handelbaren KuCoin-USDT-Paare, 05.08.2024 bis 12.11.2026, 0,1 % Gebuehr, 0,3 % Slippage).
-BACKTEST = {"from": "2024-08-05", "to": "2026-11-12", "cagr": 0.141, "max_dd": -0.238,
-            "trades": 113, "win_rate": 0.40, "cagr_first": 0.204, "cagr_last": 0.069,
-            "months_up": 10, "months": 27, "best_month": 0.308, "avg_win": 22.0, "avg_loss": -12.0,
-            "slip_cagr": 0.11, "old_cagr": 0.147, "old_dd": -0.293, "old_slip_cagr": -0.031}
+BACKTEST = {"from": "2024-08-05", "to": "2026-11-12", "cagr": 0.182, "max_dd": -0.196,
+            "trades": 135, "win_rate": 0.415, "cagr_first": 0.288, "cagr_last": 0.088,
+            "months_up": 9, "months": 27, "best_month": 0.447, "avg_win": 22.8, "avg_loss": -12.0,
+            "slip_cagr": 0.131, "old_cagr": 0.181, "old_dd": -0.215, "five_cagr": 0.141, "five_dd": -0.238}
 
 API = "https://api.kucoin.com"
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -341,7 +342,7 @@ def scan(acc: Account) -> int:
         elif acc.now - last < COOLDOWN_DAYS * DAY:
             sg["status"] = "Sperrfrist nach Verkauf"
         elif len(acc.pos) >= MAX_POSITIONS:
-            sg["status"] = "kein Platz (5 Positionen)"
+            sg["status"] = f"kein Platz ({MAX_POSITIONS} Positionen)"
         else:
             try:
                 ask = float(api(f"/api/v1/market/orderbook/level1?symbol={coin}-USDT")["bestAsk"])
@@ -428,9 +429,27 @@ def build_dashboard(acc: Account, run_errors: int) -> None:
     })
 
 
+def migrate_split(state: dict) -> None:
+    """Einmalig: 200 USDT aus dem Futures-Konto gutschreiben (neue Aufteilung 300/700)."""
+    if state.get("split_v2") or "cash" not in state:
+        state["split_v2"] = True
+        return
+    state["cash"] += TRANSFER_V2
+    if os.path.exists(EQUITY_CSV):
+        with open(EQUITY_CSV, newline="", encoding="utf-8") as f:
+            rows = list(csv.reader(f))
+        with open(EQUITY_CSV, "w", newline="", encoding="utf-8") as f:
+            w = csv.writer(f)
+            w.writerow(rows[0])
+            w.writerows([r[0], round(float(r[1]) + TRANSFER_V2, 2)] + r[2:] for r in rows[1:])
+    state["split_v2"] = True
+
+
 def main() -> int:
     now_ms = int(time.time() * 1000)
-    acc = Account(load_json(STATE_JSON, {}), load_json(TRADES_JSON, []), now_ms)
+    state = load_json(STATE_JSON, {})
+    migrate_split(state)
+    acc = Account(state, load_json(TRADES_JSON, []), now_ms)
     errors = 0
     try:
         check_exits(acc)

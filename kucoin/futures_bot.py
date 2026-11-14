@@ -25,7 +25,7 @@ import urllib.request
 # ----------------------------------------------------------------------------
 # Einstellungen
 # ----------------------------------------------------------------------------
-START_EQUITY = 500.0      # USDT im Futures-Konto (die andere Haelfte liegt im Spot-Konto)
+START_EQUITY = 300.0      # USDT im Futures-Konto (700 liegen im Spot-Konto)
 COINS = ["XBT", "ETH", "SOL", "XRP", "DOGE", "BNB", "ADA", "LINK",
          "AVAX", "LTC", "BCH", "DOT", "NEAR", "AAVE", "UNI", "TRX"]
 
@@ -40,11 +40,12 @@ PARTIAL_FRACTION = 0.5
 BE_LOCK_R = 0.05          # ... und den Stop knapp ueber den Einstand ziehen (Einstand + 0,05 R)
 SIDES = "both"            # "both", "long" oder "short"
 
-RISK_PER_TRADE = 0.01     # Zielgroesse: 1 % des Futures-Kontos (0,5 % vom Gesamtkapital) am Stop
+RISK_PER_TRADE = 5 / 300   # Zielgroesse: rund 5 USDT Verlust am Stop (0,5 % vom Gesamtkapital)
+TRANSFER_V2 = -200.0      # einmalige Umbuchung beim Wechsel von 500/500 auf 300/700
 MIN_NOTIONAL = 100.0      # jede Position ist mindestens 100 USDT gross ...
-MAX_RISK_PER_TRADE = 0.02 # ... und wird ausgelassen, wenn sie mehr als 2 % (1 % gesamt) riskieren wuerde
-MAX_POS_LEVERAGE = 3.0    # eine Position hoechstens 3 x Futures-Konto
-MAX_GROSS_LEVERAGE = 6.0  # alle Positionen zusammen hoechstens 6 x Futures-Konto (3 x gesamt)
+MAX_RISK_PER_TRADE = 10 / 300  # ... und wird ausgelassen, wenn sie mehr als rund 10 USDT riskieren wuerde
+MAX_POS_LEVERAGE = 3.0    # eine Position hoechstens 3 x Futures-Konto (900 USDT)
+MAX_GROSS_LEVERAGE = 5.0  # alle Positionen zusammen hoechstens 5 x Futures-Konto (1.500 USDT)
 ACCOUNT_LEVERAGE = 10     # eingestellter Hebel (Obergrenze, bestimmt nur die Margin)
 
 TAKER_FEE = 0.0006        # 0,06 % je Seite
@@ -53,10 +54,10 @@ MAINT_MARGIN = 0.01       # Zwangsliquidation, wenn Konto < 1 % des Positionswer
 
 # Ergebnis des Ruecktests dieser Einstellungen (kucoin/research/, KuCoin-Stundenkerzen,
 # 16 Coins, 05.08.2024 bis 12.11.2026, mit Gebuehr, Slippage und Funding).
-BACKTEST = {"from": "2024-08-05", "to": "2026-11-12", "cagr": 0.19, "max_dd": -0.137,
-            "trades": 132, "win_rate": 0.485, "pf_first": 1.16, "pf_last": 1.33,
-            "cagr_first": 0.012, "cagr_last": 0.249, "months_up": 14, "months": 27,
-            "top5_share": 0.68, "plain_cagr": 0.227, "plain_dd": -0.24, "plain_win": 0.39}
+BACKTEST = {"from": "2024-08-05", "to": "2026-11-12", "cagr": 0.304, "max_dd": -0.236,
+            "trades": 140, "win_rate": 0.49, "pf_first": 1.24, "pf_last": 1.21,
+            "cagr_first": 0.053, "cagr_last": 0.367, "months_up": 14, "months": 27,
+            "top5_share": 0.69, "gain": 248, "plain_gain": 414, "plain_dd": -0.343, "plain_win": 0.40}
 
 API = "https://api-futures.kucoin.com"
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -512,9 +513,30 @@ def build_dashboard(acc: Account, run_errors: int) -> None:
     })
 
 
+def migrate_split(state: dict) -> None:
+    """Einmalig: 200 USDT vom Futures- ins Spot-Konto umbuchen (neue Aufteilung 300/700).
+
+    Die bisherige Kurve wird mit verschoben, damit kein Sprung und kein Scheinverlust entsteht.
+    """
+    if state.get("split_v2") or "cash" not in state:
+        state["split_v2"] = True
+        return
+    state["cash"] += TRANSFER_V2
+    if os.path.exists(EQUITY_CSV):
+        with open(EQUITY_CSV, newline="", encoding="utf-8") as f:
+            rows = list(csv.reader(f))
+        with open(EQUITY_CSV, "w", newline="", encoding="utf-8") as f:
+            w = csv.writer(f)
+            w.writerow(rows[0])
+            w.writerows([r[0], round(float(r[1]) + TRANSFER_V2, 2)] + r[2:] for r in rows[1:])
+    state["split_v2"] = True
+
+
 def main() -> int:
     now_ms = int(time.time() * 1000)
-    acc = Account(load_json(STATE_JSON, {}), load_json(TRADES_JSON, []), now_ms)
+    state = load_json(STATE_JSON, {})
+    migrate_split(state)
+    acc = Account(state, load_json(TRADES_JSON, []), now_ms)
     errors = 0
     if not acc.s.get("liquidated"):
         try:

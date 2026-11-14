@@ -71,12 +71,12 @@ class T(unittest.TestCase):
     def test_account_roundtrip(self):
         acc = f.Account({}, [], 1_000_000)
         acc.buy("SOL", 2.0, 50.0, "Test")
-        self.assertAlmostEqual(acc.s["cash"], 500 - 100 - 0.1)
+        self.assertAlmostEqual(acc.s["cash"], f.START_EQUITY - 100 - 0.1)
         acc.marks["SOL"] = 55.0
-        self.assertAlmostEqual(acc.equity(), 500 - 0.1 + 10)
+        self.assertAlmostEqual(acc.equity(), f.START_EQUITY - 0.1 + 10)
         net = acc.sell("SOL", 70.0, 2_000_000, "Test")
         self.assertAlmostEqual(net, 40 - 0.1 - 0.14)
-        self.assertAlmostEqual(acc.equity(), 500 + net)
+        self.assertAlmostEqual(acc.equity(), f.START_EQUITY + net)
         self.assertEqual(acc.s["last_exit"]["SOL"], 2_000_000)
         self.assertAlmostEqual(acc.trades[0]["ret"], round(net / 100, 4))
 
@@ -88,10 +88,10 @@ class T(unittest.TestCase):
         self.assertAlmostEqual(p["qty"], 1.0)
         self.assertTrue(p["partial"])
         self.assertAlmostEqual(p["realized"], 10 - 0.06)
-        self.assertAlmostEqual(acc.s["cash"], 500 - 100.1 + 60 - 0.06)
+        self.assertAlmostEqual(acc.s["cash"], f.START_EQUITY - 100.1 + 60 - 0.06)
         net = acc.sell("SOL", 50.25, 2_000_000, "Stop am Einstand nach Teilgewinn")
         self.assertAlmostEqual(net, 10 - 0.06 + 0.25 - 0.05025 - 0.1)
-        self.assertAlmostEqual(acc.equity(), 500 + net)
+        self.assertAlmostEqual(acc.equity(), f.START_EQUITY + net)
         self.assertTrue(acc.trades[0]["partial"])
         self.assertAlmostEqual(acc.trades[0]["notional"], 100)
 
