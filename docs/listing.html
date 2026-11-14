@@ -1,0 +1,229 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Paper-Bot · Strategie 3</title>
+<style>
+:root{
+  --bg:#f4f2ec;--card:#fffdf8;--ink:#1c1b18;--mute:#6f6a5f;--line:#ddd8cb;
+  --pos:#1f6f4a;--neg:#a8402a;--acc:#2b5fa8;--warn:#8a6100;
+  --mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme:dark){:root{
+  --bg:#15161a;--card:#1d1f25;--ink:#ecebe6;--mute:#9a988f;--line:#30333c;
+  --pos:#5fc592;--neg:#ee8a70;--acc:#7fadf0;--warn:#e2b84c;
+}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 system-ui,-apple-system,"Segoe UI",sans-serif}
+main{max-width:1040px;margin:0 auto;padding:20px 16px 48px}
+nav{display:flex;gap:6px;margin-bottom:14px;flex-wrap:wrap}
+nav a{font-size:13px;padding:5px 12px;border:1px solid var(--line);border-radius:999px;color:var(--mute);text-decoration:none}
+nav a.on{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+header{display:flex;flex-wrap:wrap;gap:8px 16px;align-items:baseline;justify-content:space-between;margin-bottom:6px}
+h1{font-size:20px;margin:0}
+h2{font-size:12px;margin:0 0 10px;color:var(--mute);text-transform:uppercase;letter-spacing:.09em;font-weight:600}
+.tag{font:12px var(--mono);border:1px solid var(--line);border-radius:999px;padding:2px 10px;color:var(--mute)}
+.tag.stale{color:var(--warn);border-color:var(--warn)}
+.sub{color:var(--mute);margin:0 0 18px;max-width:72ch}
+.card{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:16px;margin-bottom:14px}
+.verdict{border-left:4px solid var(--mute)}
+.verdict.pos{border-left-color:var(--pos)}.verdict.neg{border-left-color:var(--neg)}
+.verdict b{display:block;font-size:17px;margin-bottom:2px}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-bottom:14px}
+.kpi{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:12px 14px}
+.kpi .l{font-size:12px;color:var(--mute)}
+.kpi .v{font:600 22px var(--mono);font-variant-numeric:tabular-nums;margin:2px 0;white-space:nowrap}
+.kpi .n{font-size:12px;color:var(--mute)}
+.pos{color:var(--pos)}.neg{color:var(--neg)}
+svg{display:block;width:100%;height:auto}
+.scroll{overflow-x:auto}
+table{border-collapse:collapse;width:100%;font-size:13px;min-width:760px}
+th{text-align:left;color:var(--mute);font-weight:600;font-size:12px;border-bottom:1px solid var(--line);padding:6px 8px}
+td{padding:7px 8px;border-bottom:1px solid var(--line);vertical-align:top}
+td.num{font-family:var(--mono);font-variant-numeric:tabular-nums;white-space:nowrap}
+td.why{color:var(--mute)}
+.empty{color:var(--mute);padding:18px 0;text-align:center}
+.rules{margin:0;padding-left:18px;color:var(--mute)}
+.rules li{margin:3px 0}
+.rules b{color:var(--ink);font-weight:600}
+pre{margin:0;font:12px var(--mono);white-space:pre-wrap;color:var(--neg)}
+footer{color:var(--mute);font-size:12px;margin-top:18px}
+.lights{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:10px;margin-bottom:12px}
+.light{border:1px solid var(--line);border-radius:8px;padding:10px 12px;border-left:4px solid var(--neg)}
+.light.up{border-left-color:var(--pos)}
+.light b{display:block}.light span{font-size:12px;color:var(--mute)}
+.legend{display:flex;gap:14px;flex-wrap:wrap;font-size:12px;color:var(--mute);margin-top:8px}
+.legend i{display:inline-block;width:14px;height:2px;margin-right:5px;vertical-align:middle}
+</style>
+</head>
+<body>
+<main>
+  <nav><a href="index.html">Übersicht</a><a href="rotation.html">Strategie 2</a><a href="listing.html" class="on">Strategie 3</a><a href="futures.html">Futures-Teil</a><a href="spot.html">Spot-Teil</a><a href="polymarket.html">Polymarket (beendet)</a></nav>
+  <header>
+    <h1>Paper-Bot · Strategie 3: Neu-Listing-Short</h1>
+    <span class="tag" id="updated">lädt …</span>
+  </header>
+  <p class="sub" id="sub">Eigenes Scheinkonto.</p>
+
+  <div class="card verdict" id="verdict"><b>lädt …</b><span></span></div>
+  <div class="kpis" id="kpis"></div>
+
+  <div class="card">
+    <h2>Kontostand (USDT)</h2>
+    <div id="curve"></div>
+  </div>
+
+  <div class="card">
+    <h2>Offene Shorts</h2>
+    <div class="scroll" id="positions"></div>
+    <p class="sub" id="hedge" style="margin:10px 0 0"></p>
+  </div>
+
+  <div class="card">
+    <h2>Neue Krypto-Futures in der Wartezeit</h2>
+    <div class="scroll" id="upcoming"></div>
+  </div>
+
+  <div class="card">
+    <h2>Abgeschlossene Shorts (neueste zuerst)</h2>
+    <div class="scroll" id="trades"></div>
+  </div>
+
+  <div class="card">
+    <h2>Regeln</h2>
+    <ul class="rules" id="rules"></ul>
+  </div>
+
+  <div class="card">
+    <h2>Wie die Strategie geprüft wurde</h2>
+    <div class="scroll" id="tests"></div>
+    <ul class="rules" id="testnotes" style="margin-top:10px"></ul>
+  </div>
+
+  <div class="card" id="errbox" hidden>
+    <h2>Letzte Fehler</h2>
+    <pre id="errors"></pre>
+  </div>
+  <footer>Verkauf am Geldkurs, Rückkauf am Briefkurs, dazu 0,06 % Gebühr, 0,14 % Slippage und echtes Funding. Keine Anlageberatung, kein echtes Geld.</footer>
+</main>
+<script>
+
+const $ = id => document.getElementById(id);
+const el = (tag, cls, txt) => { const e = document.createElement(tag); if (cls) e.className = cls; if (txt != null) e.textContent = txt; return e; };
+const usd = (v, sign) => (sign && v > 0 ? "+" : "") + (v < 0 ? "−" : "") + Math.abs(v).toLocaleString("de-DE", {minimumFractionDigits: 2, maximumFractionDigits: 2}) + " $";
+const pct = (v, d = 1) => v == null ? "–" : (v < 0 ? "−" : "") + Math.abs(v * 100).toLocaleString("de-DE", {minimumFractionDigits: d, maximumFractionDigits: d}) + " %";
+const spct = (v, d = 0) => v == null ? "–" : (v > 0 ? "+" : "") + pct(v, d);
+const num = v => (+v).toLocaleString("de-DE", {maximumSignificantDigits: 6});
+const when = s => new Date(s).toLocaleString("de-DE", {day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit"});
+const sgn = v => v > 0 ? "pos" : v < 0 ? "neg" : "";
+const NS = "http://www.w3.org/2000/svg";
+const svg = (tag, attrs) => { const e = document.createElementNS(NS, tag); for (const k in attrs) e.setAttribute(k, attrs[k]); return e; };
+const li = (b, t) => { const e = el("li"); e.append(el("b", "", b), document.createTextNode(" " + t)); return e; };
+
+function kpi(label, value, note, cls) {
+  const k = el("div", "kpi");
+  k.append(el("div", "l", label), el("div", "v" + (cls ? " " + cls : ""), value), el("div", "n", note || ""));
+  return k;
+}
+function table(host, heads, rows, empty) {
+  host.replaceChildren();
+  if (!rows.length) { host.append(el("div", "empty", empty)); return; }
+  const t = el("table"), hr = el("tr");
+  for (const h of heads) hr.append(el("th", "", h));
+  t.append(hr);
+  for (const cells of rows) { const r = el("tr"); for (const [txt, cls] of cells) r.append(el("td", cls || "", txt)); t.append(r); }
+  host.append(t);
+}
+function curve(host, pts, start) {
+  host.replaceChildren();
+  if (pts.length < 2) { host.append(el("div", "empty", "Erscheint nach den ersten Läufen.")); return; }
+  const W = 960, H = 240, L = 54, R = 12, T = 10, B = 24;
+  const all = pts.map(p => p.eq), lo = Math.min(start, ...all), hi = Math.max(start, ...all), pad = (hi - lo) * .08 || 5;
+  const t0 = +new Date(pts[0].ts), t1 = +new Date(pts[pts.length - 1].ts);
+  const x = p => L + (W - L - R) * ((+new Date(p.ts) - t0) / ((t1 - t0) || 1)), y = v => T + (H - T - B) * (1 - (v - lo + pad) / (hi - lo + 2 * pad));
+  const s = svg("svg", {viewBox: `0 0 ${W} ${H}`, role: "img", "aria-label": "Kontostand über die Zeit"});
+  for (const v of [...new Set([Math.round(lo), start, Math.round(hi)])]) {
+    s.append(svg("line", {x1: L, x2: W - R, y1: y(v), y2: y(v), stroke: "var(--line)", "stroke-dasharray": v === start ? "" : "3 3"}));
+    const t = svg("text", {x: L - 6, y: y(v) + 4, "text-anchor": "end", "font-size": 11, fill: "var(--mute)"}); t.textContent = v; s.append(t);
+  }
+  const line = (key, col, w) => s.append(svg("polyline", {points: pts.filter(p => p[key] != null).map(p => `${x(p).toFixed(1)},${y(p[key]).toFixed(1)}`).join(" "), fill: "none", stroke: col, "stroke-width": w, "stroke-linejoin": "round"}));
+  line("eq", "var(--acc)", 2);
+  for (const [p, anchor] of [[pts[0], "start"], [pts[pts.length - 1], "end"]]) {
+    const t = svg("text", {x: x(p), y: H - 6, "text-anchor": anchor, "font-size": 11, fill: "var(--mute)"}); t.textContent = when(p.ts); s.append(t);
+  }
+  host.append(s);
+}
+
+function render(d) {
+  const s = d.summary, c = d.config, age = (Date.now() - new Date(d.updated)) / 60000;
+  const u = $("updated");
+  u.textContent = (age > 30 ? "veraltet · " : "") + "Stand " + when(d.updated);
+  u.className = "tag" + (age > 30 ? " stale" : "");
+  $("sub").textContent = `Eigenes Scheinkonto mit ${usd(c.start)} seit ${when(d.started)}. Der Bot verkauft neu gelistete Krypto-Futures leer und hält dagegen einen Bitcoin-Long in gleicher Höhe.`;
+
+  const box = $("verdict"); let cls = "", head, text;
+  if (s.trades < 40) { head = "Noch keine Aussage möglich"; text = `${s.trades} von mindestens 40 abgeschlossenen Shorts. Im Test gewannen rund 6 von 10, einzelne Verlierer kosteten aber die halbe Position. Wenige Trades sagen deshalb nichts.`; }
+  else if (s.avg_ret > 0.02 && s.pnl > 0) { cls = "pos"; head = "Bisher im Plus"; text = `Im Schnitt ${spct(s.avg_ret, 1)} je Short über ${s.trades} Trades, größter Rückgang ${pct(s.max_dd)}.`; }
+  else if (s.pnl < 0) { cls = "neg"; head = "Bisher im Minus"; text = `${usd(s.pnl, true)} nach ${s.trades} Shorts, größter Rückgang ${pct(s.max_dd)}.`; }
+  else { head = "Kein klarer Vorteil"; text = `Im Schnitt ${spct(s.avg_ret, 1)} je Short über ${s.trades} Trades. Das ist von Zufall kaum zu unterscheiden.`; }
+  box.className = "card verdict " + cls; box.firstElementChild.textContent = head; box.lastElementChild.textContent = text;
+
+  const k = $("kpis"); k.replaceChildren();
+  k.append(
+    kpi("Konto", usd(s.equity), `${usd(s.pnl, true)} · ${pct(s.ret)}`, sgn(s.pnl)),
+    kpi("Größter Rückgang", pct(s.max_dd), "vom Höchststand"),
+    kpi("Offene Shorts", `${s.open} von ${c.max_positions}`, `${usd(s.short_notional)} leerverkauft`),
+    kpi("Bitcoin-Absicherung", usd(s.hedge_value), `Ergebnis bisher ${usd(s.hedge_pnl, true)}`),
+    kpi("Abgeschlossen", String(s.trades), s.trades ? `${s.wins} mit Gewinn · Ø ${spct(s.avg_ret, 1)} je Short` : "noch keiner"),
+    kpi("Kosten", usd(s.fees + Math.max(0, s.funding)), `Gebühren ${usd(s.fees)} · Funding ${usd(s.funding, true)}`)
+  );
+  curve($("curve"), d.curve, c.start);
+
+  table($("positions"), ["Coin", "Gelistet", "Short seit", "Einstieg", "Kurs", "Bewegung", "Stop", "Endet am", "Wert", "Ergebnis"],
+    d.positions.map(p => [[p.coin], [new Date(p.listed).toLocaleDateString("de-DE"), "num"], [when(p.since), "num"], [num(p.entry), "num"], [num(p.mark), "num"], [spct(p.move, 1), "num"], [num(p.stop), "num"],
+      [new Date(p.exit).toLocaleDateString("de-DE"), "num"], [usd(p.notional), "num"], [usd(p.pnl, true), "num " + sgn(p.pnl)]]),
+    "Kein offener Short.");
+  $("hedge").textContent = s.hedge_lots ? `Absicherung: Bitcoin-Long über ${usd(s.hedge_value)} (${s.hedge_lots} Kontrakte). Er gewinnt, wenn der ganze Markt steigt, und gleicht dann die Verluste der Shorts aus.` : "Keine Absicherung nötig, solange kein Short offen ist.";
+
+  const sk = d.skipped || {};
+  table($("upcoming"), ["Coin", "Gelistet", "Short frühestens am", "Kurs"],
+    (d.upcoming || []).map(x => [[x.coin], [when(x.listed), "num"], [new Date(x.entry).toLocaleDateString("de-DE"), "num"], [num(x.price), "num"]]),
+    `Aktuell kein neuer Krypto-Future in der Wartezeit.${sk["Aktien-Token"] ? ` KuCoin listet derzeit vor allem tokenisierte Aktien und ETFs (${sk["Aktien-Token"]} Stück), die der Bot bewusst auslässt.` : ""}`);
+
+  table($("trades"), ["Ende", "Coin", "Einstieg", "Ausstieg", "Tage", "Wert", "Ergebnis", "in %", "Grund"],
+    d.trades.map(x => [[when(x.exit_ts), "num"], [x.coin], [num(x.entry), "num"], [num(x.exit), "num"], [String(x.days), "num"], [usd(x.notional), "num"],
+      [usd(x.pnl, true), "num " + sgn(x.pnl)], [spct(x.ret, 1), "num " + sgn(x.ret)], [x.exit_reason, "why"]]),
+    "Noch kein abgeschlossener Short.");
+
+  const r = $("rules"); r.replaceChildren();
+  r.append(
+    li("Was gehandelt wird:", "Jeder neue Krypto-Future auf KuCoin. Tokenisierte Aktien und ETFs sind ausgeschlossen."),
+    li("Einstieg:", `Short am ${c.entry_day}. Tag nach dem Listing, kurz nach Mitternacht UTC. Die ersten Tage mit den wildesten Ausschlägen bleiben außen vor.`),
+    li("Ausstieg:", `Nach ${c.hold_days} Tagen, oder sofort, wenn der Kurs ${pct(c.stop, 0)} über dem Einstieg liegt.`),
+    li("Größe:", `${pct(c.weight, 0)} des Kontos je Coin, höchstens ${c.max_positions} gleichzeitig. Ein Stop kostet damit rund 2,5 % des Kontos.`),
+    li("Absicherung:", "Ein Bitcoin-Long in Höhe aller offenen Shorts. So verdient der Bot daran, dass neue Coins schwächer laufen als Bitcoin, und nicht an der Marktrichtung.")
+  );
+
+  table($("tests"), ["Stufe", "Daten", "Trades", "Ergebnis je Trade", "Gewinner"],
+    c.tests.map(t => [[t.stage], [t.data], [String(t.n), "num"], [spct(t.avg, 1), "num " + sgn(t.avg)], [pct(t.win, 0), "num"]]), "");
+  const a = c.account_test, tn = $("testnotes"); tn.replaceChildren();
+  tn.append(
+    li("Auf Kontoebene:", `In der Schlusskontrolle ergab das ${spct(a.cagr)} pro Jahr bei einem größten Rückgang von ${pct(a.dd, 0)}, ${a.months_up} von ${a.months} Monaten im Plus.`),
+    li("Der Effekt dahinter:", "Neu gelistete Coins lagen in allen drei Datensätzen nach einem Monat im Median 10 bis 25 % tiefer. Einzelne vervielfachen sich aber, deshalb der feste Stop und die kleinen Positionen."),
+    li("Einschränkung der Schlusskontrolle:", "Die Trennung von Krypto und Aktien-Token habe ich erst nach dem ersten Blick auf die KuCoin-Daten eingeführt. Mit den Aktien-Token waren es +1,5 % je Trade statt +3,4 %."),
+    li("Wird schwächer:", "Im letzten Jahr der Schlusskontrolle blieben nur noch rund +1 % je Trade. Gut möglich, dass der Effekt bekannter und damit kleiner wird."),
+    li("Größtes Risiko:", "Ein neuer Coin, der sich über Nacht verdoppelt, überspringt den Stop. Der Verlust ist dann größer als geplant.")
+  );
+
+  $("errbox").hidden = !d.errors.length;
+  $("errors").textContent = d.errors.join("\n");
+}
+
+fetch("listing.json?t=" + Date.now()).then(r => r.json()).then(render).catch(e => {
+  $("verdict").firstElementChild.textContent = "Noch keine Daten";
+  $("verdict").lastElementChild.textContent = "Strategie 3 hat noch keinen Lauf gespeichert. (" + e + ")";
+});
+</script>
+</body>
+</html>

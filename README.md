@@ -1,9 +1,10 @@
 # paper-bot
 
-Paper-Trading-Bot für KuCoin, ohne Konto und ohne echte Orders. Zwei Scheinkonten mit je 1.000 USDT laufen nebeneinander. Übersicht: `docs/index.html`
+Paper-Trading-Bot für KuCoin, ohne Konto und ohne echte Orders. Drei Scheinkonten mit je 1.000 USDT laufen nebeneinander. Übersicht: `docs/index.html`
 
 - **Strategie 1:** Trendfolge mit Hebel (300 USDT Futures) plus Momentum-Scanner (700 USDT Spot). Regeln an 27 Monaten KuCoin-Daten gewählt.
 - **Strategie 2:** Bitcoin-Kern plus Rotation, nur Spot. Entwickelt und geprüft auf getrennten Datensätzen.
+- **Strategie 3:** neu gelistete Krypto-Futures leerverkaufen, abgesichert mit einem Bitcoin-Long. Ebenfalls in drei Stufen geprüft.
 
 ## Strategie 2: Bitcoin-Kern plus Rotation (`kucoin/rotation_bot.py`)
 
@@ -23,6 +24,23 @@ Entwicklung in drei getrennten Stufen (`kucoin/research/rot.py`, `rot_core.py`, 
 | Schlusskontrolle (einmal) | KuCoin 08/2024–11/2026 | +10 % | −28 % | 0,47 | +10 % | −53 % |
 
 Lesart: Das Ergebnis wird mit jeder Stufe schwächer, der ehrlichste Wert ist die Schlusskontrolle. Die Rotation allein fiel in der Prüfung durch (−45 % Rückgang, weit hinter Bitcoin) und wurde deshalb mit dem Bitcoin-Kern kombiniert. Ein Short-Baustein für schlechte Marktlagen brachte in der Entwicklung nur 2022 Gewinn und verlor in der Prüfung, er ist nicht enthalten. Die Rechenfunktionen des Bots wurden an 30 Stichtagen gegen den Rücktest abgeglichen, ohne Abweichung.
+
+## Strategie 3: Neu-Listing-Short (`kucoin/listing_bot.py`)
+
+Neu gelistete Coins verlieren in den ersten Wochen meist deutlich, einzelne vervielfachen sich aber.
+
+- **Einstieg:** Short am 4. Tag nach dem Listing eines Krypto-Futures (tokenisierte Aktien und ETFs ausgeschlossen).
+- **Ausstieg:** nach 30 Tagen oder bei +50 % gegen die Position.
+- **Größe:** 5 % des Kontos je Coin, höchstens 10 gleichzeitig.
+- **Absicherung:** ein Bitcoin-Long in Höhe aller offenen Shorts.
+
+| Stufe | Daten | Trades | je Trade nach Kosten | Gewinner |
+|---|---|---|---|---|
+| Entwicklung | Binance-Listings 2019–2022 (Spotkurse, inkl. gelöschter Coins) | 333 | +5,7 % | 64 % |
+| Prüfung | Binance-Listings 2023–08/2024 | 85 | +9,2 % | 71 % |
+| Schlusskontrolle | KuCoin-Futures 08/2024–11/2026, echtes Funding, nur Krypto | 340 | +3,4 % | 59 % |
+
+Auf Kontoebene in der Schlusskontrolle: +10 % pro Jahr bei −32 % größtem Rückgang. Ohne Absicherung lag der Schnitt in der Entwicklung nur bei +2 % je Trade, und der Short verlor in guten Marktphasen. Einschränkungen: Die Trennung von Krypto und Aktien-Token wurde erst nach dem ersten Blick auf die KuCoin-Daten eingeführt (mit Aktien-Token +1,5 % je Trade), und im letzten Jahr blieben nur noch rund +1 % je Trade. Skripte: `kucoin/research/newlist.py`, `dl_futf.py`.
 
 ### Geprüft und verworfen: Fibonacci 0,882 und Liquidity Sweep + Order Block (`kucoin/research/smc.py`)
 

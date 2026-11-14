@@ -33,7 +33,7 @@ h2{font-size:12px;margin:0 0 10px;color:var(--mute);text-transform:uppercase;let
 .kpi .v{font:600 22px var(--mono);font-variant-numeric:tabular-nums;margin:2px 0;white-space:nowrap}
 .kpi .n{font-size:12px;color:var(--mute)}
 .pos{color:var(--pos)}.neg{color:var(--neg)}
-.parts{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px}
+.parts{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:14px;margin-bottom:14px}
 @media (max-width:760px){.parts{grid-template-columns:1fr}}
 .part{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:16px;text-decoration:none;color:inherit;display:block}
 .part:hover{border-color:var(--mute)}
@@ -55,16 +55,17 @@ footer{color:var(--mute);font-size:12px;margin-top:18px}
 </head>
 <body>
 <main>
-  <nav><a href="index.html" class="on">Übersicht</a><a href="rotation.html">Strategie 2</a><a href="futures.html">Futures-Teil</a><a href="spot.html">Spot-Teil</a><a href="polymarket.html">Polymarket (beendet)</a></nav>
+  <nav><a href="index.html" class="on">Übersicht</a><a href="rotation.html">Strategie 2</a><a href="listing.html">Strategie 3</a><a href="futures.html">Futures-Teil</a><a href="spot.html">Spot-Teil</a><a href="polymarket.html">Polymarket (beendet)</a></nav>
   <header>
     <h1>Paper-Bot · KuCoin Spot und Futures</h1>
     <span class="tag" id="updated">lädt …</span>
   </header>
-  <p class="sub">Zwei Scheinkonten mit je 1.000 USDT laufen nebeneinander, damit der Live-Test zeigt, welche Strategie mehr taugt. Kein echtes Geld.</p>
+  <p class="sub">Drei Scheinkonten mit je 1.000 USDT laufen nebeneinander, damit der Live-Test zeigt, welche Strategie mehr taugt. Kein echtes Geld.</p>
 
   <div class="parts">
     <a class="part" href="#s1" id="pa"><h2>Strategie 1 · Trendfolge mit Hebel + Spot-Scanner</h2><div class="big">–</div><p></p><span class="more">Details weiter unten</span></a>
-    <a class="part" href="rotation.html" id="pb"><h2>Strategie 2 · Bitcoin-Kern + Rotation (neu)</h2><div class="big">–</div><p></p><span class="more">Details</span></a>
+    <a class="part" href="rotation.html" id="pb"><h2>Strategie 2 · Bitcoin-Kern + Rotation</h2><div class="big">–</div><p></p><span class="more">Details</span></a>
+    <a class="part" href="listing.html" id="pc"><h2>Strategie 3 · Neu-Listing-Short (neu)</h2><div class="big">–</div><p></p><span class="more">Details</span></a>
   </div>
 
   <h1 id="s1" style="margin:22px 0 4px">Strategie 1 im Detail</h1>
@@ -214,6 +215,10 @@ get("rotation.json").then(d => {
     : `Marktlage ${n3} von 3: Kern zu ${pct(v.frac, 0)} in Bitcoin, ${s.open} von ${v.slots} Rotations-Plätzen belegt.`)
     + ` Rücktest auf ungesehenen Daten: rund 10 % pro Jahr bei −28 % Rückgang.`);
 }).catch(() => { $("pb").querySelector("p").textContent = "Noch kein Lauf gespeichert."; });
+get("listing.json").then(d => {
+  const s = d.summary;
+  part("pc", d, `${s.open} offene Shorts auf neu gelistete Coins, abgesichert mit einem Bitcoin-Long über ${usd(s.hedge_value)}. ${s.trades} abgeschlossene Trades. Rücktest auf ungesehenen Daten: rund 10 % pro Jahr bei −32 % Rückgang.`);
+}).catch(() => { $("pc").querySelector("p").textContent = "Noch kein Lauf gespeichert."; });
 Promise.all([get("futures.json"), get("spot.json")]).then(([f, s]) => {
   render(f, s);
   const eq = f.summary.equity + s.summary.equity, start = f.config.start + s.config.start;
