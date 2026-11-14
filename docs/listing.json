@@ -1,0 +1,74 @@
+{
+ "updated": "2026-11-14T23:05:09Z",
+ "started": "2026-11-14T23:05:09Z",
+ "config": {
+  "start": 1000.0,
+  "entry_day": 4,
+  "hold_days": 30,
+  "stop": 0.5,
+  "weight": 0.05,
+  "max_positions": 10,
+  "tests": [
+   {
+    "stage": "Entwicklung",
+    "data": "Binance-Listings 2019–2022",
+    "n": 333,
+    "avg": 0.057,
+    "win": 0.64
+   },
+   {
+    "stage": "Prüfung",
+    "data": "Binance-Listings 2023–08/2024",
+    "n": 85,
+    "avg": 0.092,
+    "win": 0.71
+   },
+   {
+    "stage": "Schlusskontrolle",
+    "data": "KuCoin-Futures 08/2024–11/2026, echtes Funding",
+    "n": 340,
+    "avg": 0.034,
+    "win": 0.59
+   }
+  ],
+  "account_test": {
+   "cagr": 0.104,
+   "dd": -0.318,
+   "months_up": 14,
+   "months": 27
+  }
+ },
+ "summary": {
+  "equity": 1000.0,
+  "pnl": 0.0,
+  "ret": 0.0,
+  "max_dd": 0.0,
+  "open": 0,
+  "short_notional": 0,
+  "hedge_value": 0.0,
+  "hedge_lots": 0,
+  "hedge_pnl": 0.0,
+  "trades": 0,
+  "wins": 0,
+  "win_rate": null,
+  "avg_ret": null,
+  "shorts_pnl": 0,
+  "fees": 0.0,
+  "funding": 0.0
+ },
+ "positions": [],
+ "upcoming": [],
+ "skipped": {
+  "vor Start gelistet": 551,
+  "Aktien-Token": 165
+ },
+ "curve": [
+  {
+   "ts": "2026-11-14T23:05:09Z",
+   "eq": 1000.0
+  }
+ ],
+ "trades": [],
+ "errors": [],
+ "run_errors": 0
+}
