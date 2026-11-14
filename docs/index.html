@@ -55,12 +55,20 @@ footer{color:var(--mute);font-size:12px;margin-top:18px}
 </head>
 <body>
 <main>
-  <nav><a href="index.html" class="on">Übersicht</a><a href="futures.html">Futures-Teil</a><a href="spot.html">Spot-Teil</a><a href="polymarket.html">Polymarket (beendet)</a></nav>
+  <nav><a href="index.html" class="on">Übersicht</a><a href="rotation.html">Strategie 2</a><a href="futures.html">Futures-Teil</a><a href="spot.html">Spot-Teil</a><a href="polymarket.html">Polymarket (beendet)</a></nav>
   <header>
     <h1>Paper-Bot · KuCoin Spot und Futures</h1>
     <span class="tag" id="updated">lädt …</span>
   </header>
-  <p class="sub">Ein Scheinkonto mit 1.000 USDT: 700 für Spot, 300 für Futures. Der Bot entscheidet selbst, was er wo handelt. Kein echtes Geld.</p>
+  <p class="sub">Zwei Scheinkonten mit je 1.000 USDT laufen nebeneinander, damit der Live-Test zeigt, welche Strategie mehr taugt. Kein echtes Geld.</p>
+
+  <div class="parts">
+    <a class="part" href="#s1" id="pa"><h2>Strategie 1 · Trendfolge mit Hebel + Spot-Scanner</h2><div class="big">–</div><p></p><span class="more">Details weiter unten</span></a>
+    <a class="part" href="rotation.html" id="pb"><h2>Strategie 2 · Bitcoin-Kern + Rotation (neu)</h2><div class="big">–</div><p></p><span class="more">Details</span></a>
+  </div>
+
+  <h1 id="s1" style="margin:22px 0 4px">Strategie 1 im Detail</h1>
+  <p class="sub">1.000 USDT: 700 für Spot, 300 für Futures.</p>
 
   <div class="kpis" id="kpis"></div>
 
@@ -199,7 +207,18 @@ function render(f, sp) {
 }
 
 const get = n => fetch(n + "?t=" + Date.now()).then(r => r.json());
-Promise.all([get("futures.json"), get("spot.json")]).then(([f, s]) => render(f, s)).catch(e => {
+get("rotation.json").then(d => {
+  const s = d.summary, v = d.view || {}, n3 = v.frac == null ? null : Math.round(v.frac * 3);
+  part("pb", d, (n3 == null ? "Der erste Tageslauf steht noch aus." : n3 === 0
+    ? "Marktlage 0 von 3: Bitcoin liegt unter allen drei Durchschnitten, das Konto ist vollständig in USDT."
+    : `Marktlage ${n3} von 3: Kern zu ${pct(v.frac, 0)} in Bitcoin, ${s.open} von ${v.slots} Rotations-Plätzen belegt.`)
+    + ` Rücktest auf ungesehenen Daten: rund 10 % pro Jahr bei −28 % Rückgang.`);
+}).catch(() => { $("pb").querySelector("p").textContent = "Noch kein Lauf gespeichert."; });
+Promise.all([get("futures.json"), get("spot.json")]).then(([f, s]) => {
+  render(f, s);
+  const eq = f.summary.equity + s.summary.equity, start = f.config.start + s.config.start;
+  part("pa", {summary: {equity: eq, pnl: eq - start}}, `${f.summary.open + s.summary.open} offene Positionen, ${f.summary.trades + s.summary.trades} abgeschlossene Trades. Rücktest auf ungesehenen Daten: Futures-Teil rund 7 % pro Jahr bei −31 % Rückgang, Spot-Teil stark von der Coin-Auswahl abhängig.`);
+}).catch(e => {
   $("updated").textContent = "Daten nicht ladbar: " + e;
 });
 </script>

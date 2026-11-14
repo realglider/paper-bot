@@ -1,6 +1,30 @@
 # paper-bot
 
-Paper-Trading-Bot für KuCoin, ohne Konto und ohne echte Orders. Ein Scheinkonto mit 1.000 USDT: 300 für Futures, 700 für Spot. Übersicht: `docs/index.html`
+Paper-Trading-Bot für KuCoin, ohne Konto und ohne echte Orders. Zwei Scheinkonten mit je 1.000 USDT laufen nebeneinander. Übersicht: `docs/index.html`
+
+- **Strategie 1:** Trendfolge mit Hebel (300 USDT Futures) plus Momentum-Scanner (700 USDT Spot). Regeln an 27 Monaten KuCoin-Daten gewählt.
+- **Strategie 2:** Bitcoin-Kern plus Rotation, nur Spot. Entwickelt und geprüft auf getrennten Datensätzen.
+
+## Strategie 2: Bitcoin-Kern plus Rotation (`kucoin/rotation_bot.py`)
+
+- **Marktlage:** Liegt Bitcoin über seinem Durchschnitt der letzten 50, 100 und 200 Tage? Das ergibt 0 bis 3 Punkte.
+- **Kern (500 USDT):** Bitcoin, investiert zu 0, 33, 67 oder 100 % je nach Punkten.
+- **Rotation (500 USDT):** bei 1, 2 oder 3 Punkten bis zu 2, 3 oder 5 Coins. Gewählt werden die stärksten (Mittel aus 30- und 90-Tage-Rendite) unter den 20 meistgehandelten, die über ihrem 50-Tage-Schnitt liegen. Neuauswahl alle 7 Tage.
+- **Ausstieg:** täglich, sobald ein Coin unter seinen 50-Tage-Schnitt fällt oder seine Stärke negativ wird. Bei 0 Punkten wird alles verkauft.
+- **Größe:** 20 % des Rotations-Kontos, bei stark schwankenden Coins weniger (Ziel 80 % Jahresschwankung), mindestens 10 %.
+- **Kosten:** 0,1 % Gebühr, 0,1 % Slippage. Gehandelt wird einmal am Tag kurz nach Mitternacht UTC.
+
+Entwicklung in drei getrennten Stufen (`kucoin/research/rot.py`, `rot_core.py`, `rot_short.py`, `rot_eval.py`):
+
+| Stufe | Daten | Strategie pro Jahr | Rückgang | Sharpe | Bitcoin halten | Rückgang |
+|---|---|---|---|---|---|---|
+| Entwicklung | Binance 2019–2022, inkl. gelöschter Coins | +73 % | −37 % | 1,48 | +45 % | −77 % |
+| Prüfung (zweimal angesehen) | Binance 2023–08/2024 | +58 % | −29 % | 1,24 | +120 % | −24 % |
+| Schlusskontrolle (einmal) | KuCoin 08/2024–11/2026 | +10 % | −28 % | 0,47 | +10 % | −53 % |
+
+Lesart: Das Ergebnis wird mit jeder Stufe schwächer, der ehrlichste Wert ist die Schlusskontrolle. Die Rotation allein fiel in der Prüfung durch (−45 % Rückgang, weit hinter Bitcoin) und wurde deshalb mit dem Bitcoin-Kern kombiniert. Ein Short-Baustein für schlechte Marktlagen brachte in der Entwicklung nur 2022 Gewinn und verlor in der Prüfung, er ist nicht enthalten. Die Rechenfunktionen des Bots wurden an 30 Stichtagen gegen den Rücktest abgeglichen, ohne Abweichung.
+
+# Strategie 1
 
 ## Futures-Teil (`kucoin/futures_bot.py`)
 

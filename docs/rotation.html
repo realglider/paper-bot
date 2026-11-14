@@ -1,0 +1,247 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Paper-Bot · Strategie 2</title>
+<style>
+:root{
+  --bg:#f4f2ec;--card:#fffdf8;--ink:#1c1b18;--mute:#6f6a5f;--line:#ddd8cb;
+  --pos:#1f6f4a;--neg:#a8402a;--acc:#2b5fa8;--warn:#8a6100;
+  --mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme:dark){:root{
+  --bg:#15161a;--card:#1d1f25;--ink:#ecebe6;--mute:#9a988f;--line:#30333c;
+  --pos:#5fc592;--neg:#ee8a70;--acc:#7fadf0;--warn:#e2b84c;
+}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 system-ui,-apple-system,"Segoe UI",sans-serif}
+main{max-width:1040px;margin:0 auto;padding:20px 16px 48px}
+nav{display:flex;gap:6px;margin-bottom:14px;flex-wrap:wrap}
+nav a{font-size:13px;padding:5px 12px;border:1px solid var(--line);border-radius:999px;color:var(--mute);text-decoration:none}
+nav a.on{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+header{display:flex;flex-wrap:wrap;gap:8px 16px;align-items:baseline;justify-content:space-between;margin-bottom:6px}
+h1{font-size:20px;margin:0}
+h2{font-size:12px;margin:0 0 10px;color:var(--mute);text-transform:uppercase;letter-spacing:.09em;font-weight:600}
+.tag{font:12px var(--mono);border:1px solid var(--line);border-radius:999px;padding:2px 10px;color:var(--mute)}
+.tag.stale{color:var(--warn);border-color:var(--warn)}
+.sub{color:var(--mute);margin:0 0 18px;max-width:72ch}
+.card{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:16px;margin-bottom:14px}
+.verdict{border-left:4px solid var(--mute)}
+.verdict.pos{border-left-color:var(--pos)}.verdict.neg{border-left-color:var(--neg)}
+.verdict b{display:block;font-size:17px;margin-bottom:2px}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-bottom:14px}
+.kpi{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:12px 14px}
+.kpi .l{font-size:12px;color:var(--mute)}
+.kpi .v{font:600 22px var(--mono);font-variant-numeric:tabular-nums;margin:2px 0;white-space:nowrap}
+.kpi .n{font-size:12px;color:var(--mute)}
+.pos{color:var(--pos)}.neg{color:var(--neg)}
+svg{display:block;width:100%;height:auto}
+.scroll{overflow-x:auto}
+table{border-collapse:collapse;width:100%;font-size:13px;min-width:760px}
+th{text-align:left;color:var(--mute);font-weight:600;font-size:12px;border-bottom:1px solid var(--line);padding:6px 8px}
+td{padding:7px 8px;border-bottom:1px solid var(--line);vertical-align:top}
+td.num{font-family:var(--mono);font-variant-numeric:tabular-nums;white-space:nowrap}
+td.why{color:var(--mute)}
+.empty{color:var(--mute);padding:18px 0;text-align:center}
+.rules{margin:0;padding-left:18px;color:var(--mute)}
+.rules li{margin:3px 0}
+.rules b{color:var(--ink);font-weight:600}
+pre{margin:0;font:12px var(--mono);white-space:pre-wrap;color:var(--neg)}
+footer{color:var(--mute);font-size:12px;margin-top:18px}
+.lights{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:10px;margin-bottom:12px}
+.light{border:1px solid var(--line);border-radius:8px;padding:10px 12px;border-left:4px solid var(--neg)}
+.light.up{border-left-color:var(--pos)}
+.light b{display:block}.light span{font-size:12px;color:var(--mute)}
+.legend{display:flex;gap:14px;flex-wrap:wrap;font-size:12px;color:var(--mute);margin-top:8px}
+.legend i{display:inline-block;width:14px;height:2px;margin-right:5px;vertical-align:middle}
+</style>
+</head>
+<body>
+<main>
+  <nav><a href="index.html">Übersicht</a><a href="rotation.html" class="on">Strategie 2</a><a href="futures.html">Futures-Teil</a><a href="spot.html">Spot-Teil</a><a href="polymarket.html">Polymarket (beendet)</a></nav>
+  <header>
+    <h1>Paper-Bot · Strategie 2: Bitcoin-Kern plus Rotation</h1>
+    <span class="tag" id="updated">lädt …</span>
+  </header>
+  <p class="sub" id="sub">Eigenes Scheinkonto, nur Spot, kein Hebel.</p>
+
+  <div class="card verdict" id="verdict"><b>lädt …</b><span></span></div>
+  <div class="kpis" id="kpis"></div>
+
+  <div class="card">
+    <h2>Kontostand gegen „Bitcoin einfach halten“ (USDT)</h2>
+    <div id="curve"></div>
+    <div class="legend"><span><i style="background:var(--acc)"></i>Strategie 2</span><span><i style="background:var(--mute)"></i>Bitcoin halten, gleicher Start</span></div>
+  </div>
+
+  <div class="card">
+    <h2 id="lagehead">Marktlage</h2>
+    <div class="lights" id="lights"></div>
+    <p class="sub" id="lagetext" style="margin:0"></p>
+  </div>
+
+  <div class="card">
+    <h2>Bestand</h2>
+    <div class="scroll" id="positions"></div>
+  </div>
+
+  <div class="card">
+    <h2>Die 20 meistgehandelten Coins am letzten Tagesschluss</h2>
+    <div class="scroll" id="ranking"></div>
+  </div>
+
+  <div class="card">
+    <h2>Käufe und Verkäufe (neueste zuerst)</h2>
+    <div class="scroll" id="trades"></div>
+  </div>
+
+  <div class="card">
+    <h2>Regeln</h2>
+    <ul class="rules" id="rules"></ul>
+  </div>
+
+  <div class="card">
+    <h2>Wie die Strategie geprüft wurde</h2>
+    <div class="scroll" id="tests"></div>
+    <ul class="rules" id="testnotes" style="margin-top:10px"></ul>
+  </div>
+
+  <div class="card" id="errbox" hidden>
+    <h2>Letzte Fehler</h2>
+    <pre id="errors"></pre>
+  </div>
+  <footer>Kauf am Briefkurs, Verkauf am Geldkurs, dazu 0,1 % Gebühr und 0,1 % Slippage. Keine Anlageberatung, kein echtes Geld.</footer>
+</main>
+<script>
+const $ = id => document.getElementById(id);
+const el = (tag, cls, txt) => { const e = document.createElement(tag); if (cls) e.className = cls; if (txt != null) e.textContent = txt; return e; };
+const usd = (v, sign) => (sign && v > 0 ? "+" : "") + (v < 0 ? "−" : "") + Math.abs(v).toLocaleString("de-DE", {minimumFractionDigits: 2, maximumFractionDigits: 2}) + " $";
+const pct = (v, d = 1) => v == null ? "–" : (v < 0 ? "−" : "") + Math.abs(v * 100).toLocaleString("de-DE", {minimumFractionDigits: d, maximumFractionDigits: d}) + " %";
+const spct = (v, d = 0) => v == null ? "–" : (v > 0 ? "+" : "") + pct(v, d);
+const num = v => (+v).toLocaleString("de-DE", {maximumSignificantDigits: 6});
+const when = s => new Date(s).toLocaleString("de-DE", {day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit"});
+const sgn = v => v > 0 ? "pos" : v < 0 ? "neg" : "";
+const NS = "http://www.w3.org/2000/svg";
+const svg = (tag, attrs) => { const e = document.createElementNS(NS, tag); for (const k in attrs) e.setAttribute(k, attrs[k]); return e; };
+const li = (b, t) => { const e = el("li"); e.append(el("b", "", b), document.createTextNode(" " + t)); return e; };
+
+function kpi(label, value, note, cls) {
+  const k = el("div", "kpi");
+  k.append(el("div", "l", label), el("div", "v" + (cls ? " " + cls : ""), value), el("div", "n", note || ""));
+  return k;
+}
+function table(host, heads, rows, empty) {
+  host.replaceChildren();
+  if (!rows.length) { host.append(el("div", "empty", empty)); return; }
+  const t = el("table"), hr = el("tr");
+  for (const h of heads) hr.append(el("th", "", h));
+  t.append(hr);
+  for (const cells of rows) { const r = el("tr"); for (const [txt, cls] of cells) r.append(el("td", cls || "", txt)); t.append(r); }
+  host.append(t);
+}
+function curve(host, pts, start) {
+  host.replaceChildren();
+  if (pts.length < 2) { host.append(el("div", "empty", "Erscheint nach den ersten Läufen.")); return; }
+  const W = 960, H = 240, L = 54, R = 12, T = 10, B = 24;
+  const all = pts.flatMap(p => [p.eq, p.btc]).filter(v => v != null), lo = Math.min(start, ...all), hi = Math.max(start, ...all), pad = (hi - lo) * .08 || 5;
+  const t0 = +new Date(pts[0].ts), t1 = +new Date(pts[pts.length - 1].ts);
+  const x = p => L + (W - L - R) * ((+new Date(p.ts) - t0) / ((t1 - t0) || 1)), y = v => T + (H - T - B) * (1 - (v - lo + pad) / (hi - lo + 2 * pad));
+  const s = svg("svg", {viewBox: `0 0 ${W} ${H}`, role: "img", "aria-label": "Kontostand und Bitcoin im Vergleich"});
+  for (const v of [...new Set([Math.round(lo), start, Math.round(hi)])]) {
+    s.append(svg("line", {x1: L, x2: W - R, y1: y(v), y2: y(v), stroke: "var(--line)", "stroke-dasharray": v === start ? "" : "3 3"}));
+    const t = svg("text", {x: L - 6, y: y(v) + 4, "text-anchor": "end", "font-size": 11, fill: "var(--mute)"}); t.textContent = v; s.append(t);
+  }
+  const line = (key, col, w) => s.append(svg("polyline", {points: pts.filter(p => p[key] != null).map(p => `${x(p).toFixed(1)},${y(p[key]).toFixed(1)}`).join(" "), fill: "none", stroke: col, "stroke-width": w, "stroke-linejoin": "round"}));
+  line("btc", "var(--mute)", 1.5); line("eq", "var(--acc)", 2);
+  for (const [p, anchor] of [[pts[0], "start"], [pts[pts.length - 1], "end"]]) {
+    const t = svg("text", {x: x(p), y: H - 6, "text-anchor": anchor, "font-size": 11, fill: "var(--mute)"}); t.textContent = when(p.ts); s.append(t);
+  }
+  host.append(s);
+}
+
+function render(d) {
+  const s = d.summary, c = d.config, v = d.view || {}, age = (Date.now() - new Date(d.updated)) / 60000;
+  const u = $("updated");
+  u.textContent = (age > 30 ? "veraltet · " : "") + "Stand " + when(d.updated);
+  u.className = "tag" + (age > 30 ? " stale" : "");
+  $("sub").textContent = `Eigenes Scheinkonto mit ${usd(c.start)} seit ${when(d.started)}, nur Spot, kein Hebel. Der Bot handelt einmal am Tag kurz nach Mitternacht UTC.`;
+
+  const n3 = v.frac == null ? null : Math.round(v.frac * 3);
+  const box = $("verdict"); let cls = "", head, text;
+  const days = (Date.now() - new Date(d.started)) / 864e5, vsBtc = s.btc_hold ? s.equity - s.btc_hold : 0;
+  if (days < 90) { head = "Noch keine Aussage möglich"; text = `Tag ${Math.floor(days) + 1} von mindestens 90. Diese Strategie handelt selten und zeigt ihren Wert erst über einen ganzen Auf- und Abschwung. Gegenüber „Bitcoin halten“ steht sie aktuell bei ${usd(vsBtc, true)}.`; }
+  else if (s.pnl > 0 && vsBtc > 0) { cls = "pos"; head = "Im Plus und vor Bitcoin"; text = `${usd(s.pnl, true)} seit Start, ${usd(vsBtc, true)} gegenüber „Bitcoin halten“, größter Rückgang ${pct(s.max_dd)}.`; }
+  else if (s.pnl < 0) { cls = "neg"; head = "Bisher im Minus"; text = `${usd(s.pnl, true)} seit Start, ${usd(vsBtc, true)} gegenüber „Bitcoin halten“, größter Rückgang ${pct(s.max_dd)}.`; }
+  else { head = "Im Plus, aber hinter Bitcoin"; text = `${usd(s.pnl, true)} seit Start, ${usd(vsBtc, true)} gegenüber „Bitcoin halten“. In starken Aufwärtsphasen ist das zu erwarten.`; }
+  box.className = "card verdict " + cls; box.firstElementChild.textContent = head; box.lastElementChild.textContent = text;
+
+  const k = $("kpis"); k.replaceChildren();
+  k.append(
+    kpi("Konto", usd(s.equity), `${usd(s.pnl, true)} · ${pct(s.ret)}`, sgn(s.pnl)),
+    kpi("Größter Rückgang", pct(s.max_dd), "vom Höchststand"),
+    kpi("Investiert", pct(s.invested_share, 0), `${usd(s.invested)} · Rest in USDT`),
+    kpi("Bitcoin-Kern", usd(s.btc_value), `von ${usd(s.core)} im Kern-Konto`),
+    kpi("Rotation", `${s.open} von ${v.slots ?? 0}`, `Plätze belegt · ${usd(s.rotation)} im Konto`),
+    kpi("Verkäufe", String(s.trades), s.trades ? `${s.wins} mit Gewinn · ${pct(s.win_rate, 0)}` : "noch keiner")
+  );
+  curve($("curve"), d.curve, c.start);
+
+  const lights = $("lights"); lights.replaceChildren();
+  if (v.trends) {
+    $("lagehead").textContent = `Marktlage am Tagesschluss ${new Date(v.day).toLocaleDateString("de-DE")}: ${n3} von 3 Bitcoin-Trends zeigen nach oben`;
+    for (const m of c.mas) {
+      const up = v.trends[m], b = el("div", "light" + (up ? " up" : ""));
+      b.append(el("b", "", `${m}-Tage-Trend: ${up ? "aufwärts" : "abwärts"}`), el("span", "", `Bitcoin ${num(v.btc_close)} ${up ? "über" : "unter"} dem Schnitt ${num(Math.round(v.averages[m]))}`));
+      lights.append(b);
+    }
+    $("lagetext").textContent = n3 === 0
+      ? "Folge: Der Bot hält weder Bitcoin noch andere Coins, das ganze Konto liegt in USDT. Er steigt wieder ein, sobald Bitcoin über einen der drei Durchschnitte steigt."
+      : `Folge: Der Kern ist zu ${pct(v.frac, 0)} in Bitcoin investiert, die Rotation darf ${v.slots} von ${c.top_n} Plätzen belegen.` + (v.next_rebalance ? ` Nächste Neuauswahl am ${new Date(v.next_rebalance).toLocaleDateString("de-DE")}.` : "");
+  } else $("lagetext").textContent = "Der erste Tageslauf steht noch aus.";
+
+  const rows = [];
+  if (s.btc_qty > 0) rows.push([["Kern"], ["BTC"], ["–", "num"], ["–", "num"], [usd(s.btc_value), "num"], [usd(s.btc_pnl, true), "num " + sgn(s.btc_pnl)], ["Anteil nach Marktlage", "why"]]);
+  for (const p of d.positions) rows.push([["Rotation"], [p.coin], [when(p.since), "num"], [num(p.entry), "num"], [usd(p.value), "num"], [`${usd(p.pnl, true)} (${spct(p.ret, 1)})`, "num " + sgn(p.pnl)], [`Größe ${pct(Math.max(c.min_weight, p.vs / c.top_n), 0)} des Rotations-Kontos`, "why"]]);
+  table($("positions"), ["Teil", "Coin", "Seit", "Kaufkurs", "Wert", "Ergebnis", "Anmerkung"], rows, "Kein Bestand, das ganze Konto liegt in USDT.");
+
+  table($("ranking"), ["Coin", "Stärke (30 und 90 Tage)", "Über 50-Tage-Schnitt", "Jahresschwankung", "Rang", "Status"],
+    (v.ranking || []).map(x => [[x.coin], [spct(x.mom), "num " + sgn(x.mom)], [x.trend ? "ja" : "nein"], [pct(x.vol, 0), "num"], [x.rank ? String(x.rank) : "–", "num"],
+      [x.held ? "im Bestand" : x.rank && x.rank <= c.top_n ? (v.slots ? "Kandidat" : "Kandidat, sobald die Marktlage dreht") : x.rank ? "im Trend, aber nicht unter den ersten " + c.top_n : "kein Aufwärtstrend", "why"]]),
+    "Erscheint nach dem ersten Tageslauf.");
+
+  table($("trades"), ["Zeit", "Teil", "Coin", "Art", "Kurs", "Betrag", "Ergebnis", "Grund"],
+    d.trades.map(t => [[when(t.ts), "num"], [t.part], [t.coin], [t.side], [num(t.price), "num"], [usd(t.value), "num"], [t.pnl == null ? "–" : usd(t.pnl, true), "num " + (t.pnl == null ? "" : sgn(t.pnl))], [t.reason, "why"]]),
+    "Noch kein Kauf oder Verkauf.");
+
+  const r = $("rules"); r.replaceChildren();
+  r.append(
+    li("Marktlage:", `Jeden Tag wird geprüft, ob Bitcoin über seinem Durchschnitt der letzten ${c.mas.join(", ")} Tage liegt. Das ergibt 0, 1, 2 oder 3 Punkte.`),
+    li("Kern (halbes Konto):", "Bitcoin, investiert zu 0, 33, 67 oder 100 % je nach Punkten. Gehandelt wird nur, wenn sich die Punktzahl ändert."),
+    li("Rotation (halbes Konto):", `Bei 1, 2 oder 3 Punkten bis zu 2, 3 oder ${c.top_n} Coins. Gewählt werden die stärksten unter den ${c.universe} meistgehandelten, die über ihrem ${c.coin_ma}-Tage-Schnitt liegen. Neuauswahl alle ${c.rebalance_days} Tage.`),
+    li("Ausstieg:", "Täglich. Ein Coin wird verkauft, sobald er unter seinen 50-Tage-Schnitt fällt oder seine Stärke negativ wird. Bei 0 Punkten wird alles verkauft."),
+    li("Größe:", `Ruhige Coins bekommen 20 % des Rotations-Kontos, stark schwankende entsprechend weniger, mindestens ${pct(c.min_weight, 0)}. Bei 500 USDT sind das 50 bis 100 USDT je Coin.`),
+    li("Kein Short, kein Hebel:", "Ein Short-Baustein für schlechte Marktlagen wurde mitentwickelt, hat in der Prüfung aber Geld verloren und ist deshalb nicht dabei.")
+  );
+
+  table($("tests"), ["Stufe", "Daten", "Strategie pro Jahr", "größter Rückgang", "Bitcoin halten pro Jahr", "größter Rückgang"],
+    c.tests.map(t => [[t.stage], [t.data], [spct(t.cagr), "num " + sgn(t.cagr)], [pct(t.dd, 0), "num"], [spct(t.btc_cagr), "num"], [pct(t.btc_dd, 0), "num"]]), "");
+  const tn = $("testnotes"); tn.replaceChildren();
+  tn.append(
+    li("Vorgehen:", "Die Regeln wurden nur an 2019 bis 2022 entwickelt. Die Prüfdaten wurden zweimal angesehen, die Schlusskontrolle genau einmal, danach wurde nichts mehr verändert."),
+    li("Was die Zahlen sagen:", "Mit jeder Stufe wird das Ergebnis schwächer. Der ehrlichste Wert ist die Schlusskontrolle: etwa so viel Ertrag wie Bitcoin, bei halb so tiefem Einbruch."),
+    li("Was die Strategie nicht kann:", "In starken Aufwärtsphasen bleibt sie klar hinter Bitcoin zurück (Prüfung: +58 % gegen +120 % pro Jahr). Ihr Nutzen liegt darin, Abstürze wie 2022 größtenteils auszulassen."),
+    li("Grenzen:", "Die Entwicklungsjahre waren außergewöhnlich gute Kryptojahre. Die hohen Renditen dort sind keine Erwartung für die Zukunft.")
+  );
+
+  $("errbox").hidden = !d.errors.length;
+  $("errors").textContent = d.errors.join("\n");
+}
+
+fetch("rotation.json?t=" + Date.now()).then(r => r.json()).then(render).catch(e => {
+  $("verdict").firstElementChild.textContent = "Noch keine Daten";
+  $("verdict").lastElementChild.textContent = "Strategie 2 hat noch keinen Lauf gespeichert. (" + e + ")";
+});
+</script>
+</body>
+</html>
