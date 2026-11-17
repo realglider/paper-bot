@@ -5,7 +5,7 @@
   "lots": 0,
   "qty": 0.0,
   "entry": 0.0,
-  "funded": 1794873500124,
+  "funded": 1794873815866,
   "realized": 0.0
  },
  "seen": {
@@ -726,7 +726,7 @@
   "RUM": "Aktien-Token",
   "TWST": "Aktien-Token"
  },
- "last_scan": 1794787200000,
+ "last_scan": 1794873600000,
  "fees": 0.0,
  "funding": 0.0,
  "started": "2026-11-14T23:05:09Z",
