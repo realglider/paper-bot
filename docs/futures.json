@@ -1,5 +1,5 @@
 {
- "updated": "2026-11-17T08:45:52Z",
+ "updated": "2026-11-17T08:50:05Z",
  "started": "2026-11-12T19:50:01Z",
  "config": {
   "start": 300.0,
@@ -54,9 +54,9 @@
   }
  },
  "summary": {
-  "equity": 308.1,
-  "pnl": 8.1,
-  "ret": 0.027,
+  "equity": 308.14,
+  "pnl": 8.14,
+  "ret": 0.0271,
   "max_dd": -0.0118,
   "trades": 0,
   "wins": 0,
@@ -66,7 +66,7 @@
   "avg_loss": null,
   "fees": 0.09,
   "funding": 0.02,
-  "gross": 47.35,
+  "gross": 47.3,
   "leverage": 0.15,
   "open": 1,
   "liquidated": null
@@ -77,15 +77,15 @@
    "side": "short",
    "qty": 0.08,
    "entry": 646.530668,
-   "mark": 591.82,
+   "mark": 591.29,
    "stop": 635.1219664823955,
    "since": "2026-11-13T03:02:02Z",
-   "notional": 47.35,
+   "notional": 47.3,
    "margin": 5.17,
-   "pnl": 8.1,
+   "pnl": 8.14,
    "partial": true,
    "target": null,
-   "risk": 3.46,
+   "risk": 3.51,
    "reason": "Schluss 645.97 unter dem 960-h-Tief 648.87"
   }
  ],
@@ -2025,6 +2025,10 @@
   {
    "ts": "2026-11-17T08:45:52Z",
    "eq": 308.1
+  },
+  {
+   "ts": "2026-11-17T08:50:05Z",
+   "eq": 308.14
   }
  ],
  "watch": [
