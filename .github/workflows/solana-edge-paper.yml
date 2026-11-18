@@ -1,0 +1,31 @@
+name: Solana Edge Paper Worker
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '3,18,33,48 * * * *'
+permissions:
+  contents: write
+concurrency:
+  group: solana-edge-paper
+  cancel-in-progress: false
+jobs:
+  paper:
+    runs-on: ubuntu-latest
+    timeout-minutes: 4
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Run read-only market analysis and virtual trades
+        run: python solana-edge/worker.py
+      - name: Persist SQLite database and public read-only status
+        run: |
+          git config user.name "solana-edge-paper[bot]"
+          git config user.email "solana-edge-paper[bot]@users.noreply.github.com"
+          git add solana-edge/state.sqlite3 solana-edge/status.json
+          if git diff --cached --quiet; then exit 0; fi
+          git commit -m "chore(solana-edge): persist paper tick [skip ci]"
+          git push
