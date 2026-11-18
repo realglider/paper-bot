@@ -1,0 +1,25 @@
+{
+  "version": "paper-1",
+  "updated_at": "2026-11-18T20:32:16+00:00",
+  "mode": "PAPER",
+  "wallet_connected": false,
+  "status": "OK",
+  "error": null,
+  "start_eur": 200.0,
+  "realized_eur": 0.0,
+  "unrealized_eur": 0,
+  "equity_estimate_eur": 200.0,
+  "daily_realized_eur": 0.0,
+  "positions": [],
+  "closed_trades": [],
+  "pending": [],
+  "observed_pools": 20,
+  "notes": [],
+  "limits": {
+    "max_positions": 2,
+    "stake_eur": 15.0,
+    "daily_loss_eur": 6.0,
+    "total_loss_eur": 20.0
+  },
+  "caveat": "Paper fills are based on snapshots and illustrative slippage; not executable quotes."
+}
