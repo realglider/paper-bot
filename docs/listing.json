@@ -1,5 +1,5 @@
 {
- "updated": "2026-11-18T00:01:20Z",
+ "updated": "2026-11-18T00:06:14Z",
  "started": "2026-11-14T23:05:09Z",
  "config": {
   "start": 1000.0,
@@ -57,7 +57,14 @@
   "funding": 0.0
  },
  "positions": [],
- "upcoming": [],
+ "upcoming": [
+  {
+   "coin": "ANT",
+   "listed": "2026-11-17T10:00:00Z",
+   "entry": "2026-11-21",
+   "price": 97.539
+  }
+ ],
  "skipped": {
   "vor Start gelistet": 551,
   "Aktien-Token": 165
@@ -2045,6 +2052,10 @@
   },
   {
    "ts": "2026-11-18T00:01:20Z",
+   "eq": 1000.0
+  },
+  {
+   "ts": "2026-11-18T00:06:14Z",
    "eq": 1000.0
   }
  ],
