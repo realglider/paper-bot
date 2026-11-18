@@ -1,5 +1,9 @@
 name: Solana Edge Paper Worker
 on:
+  push:
+    paths:
+      - 'solana-edge/worker.py'
+      - '.github/workflows/solana-edge-paper.yml'
   workflow_dispatch:
   schedule:
     - cron: '3,18,33,48 * * * *'
