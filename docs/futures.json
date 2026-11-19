@@ -1,5 +1,5 @@
 {
- "updated": "2026-11-19T13:20:20Z",
+ "updated": "2026-11-19T13:24:38Z",
  "started": "2026-11-12T19:50:01Z",
  "config": {
   "start": 300.0,
@@ -66,7 +66,7 @@
   "avg_loss": null,
   "fees": 0.09,
   "funding": 0.03,
-  "gross": 47.34,
+  "gross": 47.33,
   "leverage": 0.15,
   "open": 1,
   "liquidated": null
@@ -77,10 +77,10 @@
    "side": "short",
    "qty": 0.08,
    "entry": 646.530668,
-   "mark": 591.7,
+   "mark": 591.67,
    "stop": 632.723316544402,
    "since": "2026-11-13T03:02:02Z",
-   "notional": 47.34,
+   "notional": 47.33,
    "margin": 5.17,
    "pnl": 8.11,
    "partial": true,
@@ -1843,7 +1843,7 @@
    "eq": 308.12
   },
   {
-   "ts": "2026-11-19T13:20:20Z",
+   "ts": "2026-11-19T13:24:38Z",
    "eq": 308.11
   }
  ],
