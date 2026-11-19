@@ -4,12 +4,12 @@
  "btc_cost": 0.0,
  "rot_cash": 500.0,
  "positions": {},
- "last_scan": 1794960000000,
+ "last_scan": 1795046400000,
  "last_reb": 0,
  "frac": 0.0,
  "fees": 0.0,
  "view": {
-  "day": "2026-11-17",
+  "day": "2026-11-18",
   "frac": 0.0,
   "trends": {
    "50": false,
@@ -17,197 +17,197 @@
    "200": false
   },
   "averages": {
-   "50": 79076.26,
-   "100": 77787.90299999999,
-   "200": 72853.417
+   "50": 78664.496,
+   "100": 77778.857,
+   "200": 72775.34150000001
   },
-  "btc_close": 64945.4,
-  "checked": 79,
+  "btc_close": 63071.4,
+  "checked": 77,
   "slots": 0,
   "next_rebalance": null,
   "ranking": [
    {
     "coin": "BTC",
     "rank": null,
-    "mom": -0.1362,
+    "mom": -0.1833,
     "trend": false,
-    "vol": 0.438,
-    "volume": 182914586,
+    "vol": 0.443,
+    "volume": 187535518,
     "held": false
    },
    {
     "coin": "ETH",
     "rank": null,
-    "mom": -0.2165,
+    "mom": -0.2492,
     "trend": false,
-    "vol": 0.593,
-    "volume": 52325257,
+    "vol": 0.595,
+    "volume": 54868282,
     "held": false
    },
    {
     "coin": "XRP",
     "rank": null,
-    "mom": -0.179,
+    "mom": -0.2474,
     "trend": false,
-    "vol": 0.649,
-    "volume": 35203425,
+    "vol": 0.648,
+    "volume": 38450842,
     "held": false
    },
    {
     "coin": "XMR",
     "rank": null,
-    "mom": 0.027,
+    "mom": 0.0345,
     "trend": false,
-    "vol": 0.697,
-    "volume": 30976012,
+    "vol": 0.694,
+    "volume": 30728806,
     "held": false
    },
    {
     "coin": "ZEC",
     "rank": null,
-    "mom": 0.2852,
+    "mom": 0.1996,
     "trend": false,
-    "vol": 1.021,
+    "vol": 1.033,
     "volume": 25010115,
     "held": false
    },
    {
     "coin": "SOL",
     "rank": null,
-    "mom": -0.1985,
+    "mom": -0.2296,
     "trend": false,
-    "vol": 0.614,
+    "vol": 0.611,
     "volume": 16683891,
     "held": false
    },
    {
     "coin": "PEPE",
     "rank": null,
-    "mom": 0.1422,
+    "mom": 0.0372,
     "trend": false,
-    "vol": 1.124,
+    "vol": 1.118,
     "volume": 15033941,
     "held": false
    },
    {
     "coin": "NEAR",
     "rank": null,
-    "mom": 0.3182,
+    "mom": 0.2714,
     "trend": false,
-    "vol": 1.068,
-    "volume": 14475670,
+    "vol": 1.069,
+    "volume": 14235084,
     "held": false
    },
    {
     "coin": "TAO",
     "rank": null,
-    "mom": -0.1537,
+    "mom": -0.1944,
     "trend": false,
-    "vol": 0.823,
-    "volume": 10921280,
+    "vol": 0.825,
+    "volume": 10668353,
     "held": false
    },
    {
     "coin": "AAVE",
     "rank": null,
-    "mom": -0.0384,
+    "mom": -0.0828,
     "trend": false,
-    "vol": 0.894,
-    "volume": 8928605,
-    "held": false
-   },
-   {
-    "coin": "UNI",
-    "rank": null,
-    "mom": 0.1014,
-    "trend": false,
-    "vol": 1.074,
-    "volume": 8271369,
+    "vol": 0.897,
+    "volume": 8338238,
     "held": false
    },
    {
     "coin": "BNB",
     "rank": null,
-    "mom": -0.1109,
+    "mom": -0.1571,
     "trend": false,
-    "vol": 0.519,
+    "vol": 0.518,
     "volume": 8223475,
-    "held": false
-   },
-   {
-    "coin": "AVAX",
-    "rank": null,
-    "mom": -0.0882,
-    "trend": false,
-    "vol": 0.805,
-    "volume": 8211843,
     "held": false
    },
    {
     "coin": "SUI",
     "rank": null,
-    "mom": -0.106,
+    "mom": -0.1488,
     "trend": false,
     "vol": 0.785,
     "volume": 8159929,
     "held": false
    },
    {
+    "coin": "UNI",
+    "rank": null,
+    "mom": 0.0438,
+    "trend": false,
+    "vol": 1.071,
+    "volume": 8132125,
+    "held": false
+   },
+   {
+    "coin": "AVAX",
+    "rank": null,
+    "mom": -0.1518,
+    "trend": false,
+    "vol": 0.81,
+    "volume": 8088198,
+    "held": false
+   },
+   {
     "coin": "LINK",
     "rank": null,
-    "mom": -0.171,
+    "mom": -0.1985,
     "trend": false,
-    "vol": 0.751,
-    "volume": 7975658,
+    "vol": 0.753,
+    "volume": 7587564,
     "held": false
    },
    {
     "coin": "PIEVERSE",
     "rank": 1,
-    "mom": 1.0803,
+    "mom": 2.4774,
     "trend": true,
-    "vol": 1.463,
-    "volume": 7227918,
+    "vol": 2.325,
+    "volume": 7273026,
     "held": false
    },
    {
     "coin": "ASTER",
     "rank": null,
-    "mom": -0.1128,
+    "mom": -0.2257,
     "trend": false,
-    "vol": 1.047,
+    "vol": 1.097,
     "volume": 6971947,
     "held": false
    },
    {
     "coin": "DOT",
     "rank": null,
-    "mom": -0.1957,
+    "mom": -0.2639,
     "trend": false,
-    "vol": 0.751,
-    "volume": 6326092,
+    "vol": 0.737,
+    "volume": 6442223,
     "held": false
    },
    {
     "coin": "ENA",
     "rank": null,
-    "mom": -0.0543,
+    "mom": -0.2252,
     "trend": false,
-    "vol": 1.19,
+    "vol": 1.195,
     "volume": 6206379,
     "held": false
    },
    {
-    "coin": "SEI",
+    "coin": "LTC",
     "rank": null,
-    "mom": -0.1845,
+    "mom": -0.1703,
     "trend": false,
-    "vol": 0.835,
-    "volume": 5786376,
+    "vol": 0.657,
+    "volume": 5963114,
     "held": false
    }
   ]
  },
  "started": "2026-11-14T22:18:26Z",
- "btc_mark": 62939.4
+ "btc_mark": 62891.4
 }

@@ -5,7 +5,7 @@
   "lots": 0,
   "qty": 0.0,
   "entry": 0.0,
-  "funded": 1795046478251,
+  "funded": 1795046783222,
   "realized": 0.0
  },
  "seen": {
@@ -726,7 +726,7 @@
   "RUM": "Aktien-Token",
   "TWST": "Aktien-Token"
  },
- "last_scan": 1794960000000,
+ "last_scan": 1795046400000,
  "fees": 0.0,
  "funding": 0.0,
  "started": "2026-11-14T23:05:09Z",
@@ -735,7 +735,7 @@
    "coin": "ANT",
    "listed": "2026-11-17T10:00:00Z",
    "entry": "2026-11-21",
-   "price": 97.539
+   "price": 98.476
   }
  ]
 }
