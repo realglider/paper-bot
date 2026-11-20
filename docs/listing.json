@@ -1,5 +1,5 @@
 {
- "updated": "2026-11-20T00:01:28Z",
+ "updated": "2026-11-20T00:06:31Z",
  "started": "2026-11-14T23:05:09Z",
  "config": {
   "start": 1000.0,
@@ -59,15 +59,15 @@
  "positions": [],
  "upcoming": [
   {
-   "coin": "ANT",
-   "listed": "2026-11-17T10:00:00Z",
-   "entry": "2026-11-21",
-   "price": 98.476
+   "coin": "NAVER",
+   "listed": "2026-11-19T09:00:00Z",
+   "entry": "2026-11-23",
+   "price": 124.44
   }
  ],
  "skipped": {
   "vor Start gelistet": 551,
-  "Aktien-Token": 165
+  "Aktien-Token": 168
  },
  "curve": [
   {
@@ -1735,7 +1735,7 @@
    "eq": 1000.0
   },
   {
-   "ts": "2026-11-20T00:01:28Z",
+   "ts": "2026-11-20T00:06:31Z",
    "eq": 1000.0
   }
  ],
