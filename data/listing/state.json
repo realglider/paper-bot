@@ -5,7 +5,7 @@
   "lots": 0,
   "qty": 0.0,
   "entry": 0.0,
-  "funded": 1795219124787,
+  "funded": 1795219450565,
   "realized": 0.0
  },
  "seen": {
@@ -729,7 +729,7 @@
   "SOXX": "Aktien-Token",
   "ZCSH": "Aktien-Token"
  },
- "last_scan": 1795132800000,
+ "last_scan": 1795219200000,
  "fees": 0.0,
  "funding": 0.0,
  "started": "2026-11-14T23:05:09Z",
@@ -738,7 +738,7 @@
    "coin": "NAVER",
    "listed": "2026-11-19T09:00:00Z",
    "entry": "2026-11-23",
-   "price": 124.44
+   "price": 118.38
   }
  ]
 }
