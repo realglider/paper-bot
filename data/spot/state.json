@@ -2,13 +2,13 @@
  "cash": 700.0,
  "positions": {},
  "last_exit": {},
- "last_scan": 1795219200000,
+ "last_scan": 1795305600000,
  "fees": 0.0,
  "scan": {
-  "ts": "2026-11-21T00:03:17Z",
-  "day": "2026-11-20",
-  "checked": 151,
-  "liquid": 36,
+  "ts": "2026-11-22T00:05:44Z",
+  "day": "2026-11-21",
+  "checked": 146,
+  "liquid": 37,
   "signals": []
  },
  "started": "2026-11-12T19:47:15Z",
