@@ -1,5 +1,5 @@
 {
- "updated": "2026-11-22T02:21:57Z",
+ "updated": "2026-11-22T02:26:09Z",
  "started": "2026-11-12T19:50:01Z",
  "config": {
   "start": 300.0,
@@ -77,15 +77,15 @@
    "side": "short",
    "qty": 0.08,
    "entry": 646.530668,
-   "mark": 546.32,
+   "mark": 546.25,
    "stop": 573.2466210556495,
    "since": "2026-11-13T03:02:02Z",
-   "notional": 43.71,
+   "notional": 43.7,
    "margin": 5.17,
-   "pnl": 11.73,
+   "pnl": 11.74,
    "partial": true,
    "target": null,
-   "risk": 2.15,
+   "risk": 2.16,
    "reason": "Schluss 645.97 unter dem 960-h-Tief 648.87"
   },
   {
@@ -93,15 +93,15 @@
    "side": "short",
    "qty": 400.0,
    "entry": 0.29998999,
-   "mark": 0.30515,
+   "mark": 0.30518,
    "stop": 0.3112214994597749,
    "since": "2026-11-21T04:01:28Z",
-   "notional": 122.06,
+   "notional": 122.07,
    "margin": 12.0,
-   "pnl": -2.18,
+   "pnl": -2.19,
    "partial": false,
    "target": 0.2875051517675695,
-   "risk": 2.43,
+   "risk": 2.42,
    "reason": "Schluss 0.30001 unter dem 960-h-Tief 0.30069"
   }
  ],
@@ -1851,7 +1851,7 @@
    "eq": 309.29
   },
   {
-   "ts": "2026-11-22T02:21:57Z",
+   "ts": "2026-11-22T02:26:09Z",
    "eq": 309.55
   }
  ],
