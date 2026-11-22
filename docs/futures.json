@@ -1,5 +1,5 @@
 {
- "updated": "2026-11-22T13:57:18Z",
+ "updated": "2026-11-22T14:01:31Z",
  "started": "2026-11-12T19:50:01Z",
  "config": {
   "start": 300.0,
@@ -54,9 +54,9 @@
   }
  },
  "summary": {
-  "equity": 308.76,
-  "pnl": 8.76,
-  "ret": 0.0292,
+  "equity": 308.79,
+  "pnl": 8.79,
+  "ret": 0.0293,
   "max_dd": -0.0226,
   "trades": 0,
   "wins": 0,
@@ -66,7 +66,7 @@
   "avg_loss": null,
   "fees": 0.16,
   "funding": 0.12,
-  "gross": 166.52,
+  "gross": 166.49,
   "leverage": 0.54,
   "open": 2,
   "liquidated": null
@@ -77,15 +77,15 @@
    "side": "short",
    "qty": 0.08,
    "entry": 646.530668,
-   "mark": 555.44,
+   "mark": 555.1600000000001,
    "stop": 573.2466210556495,
    "since": "2026-11-13T03:02:02Z",
-   "notional": 44.44,
+   "notional": 44.41,
    "margin": 5.17,
-   "pnl": 11.0,
+   "pnl": 11.02,
    "partial": true,
    "target": null,
-   "risk": 1.42,
+   "risk": 1.45,
    "reason": "Schluss 645.97 unter dem 960-h-Tief 648.87"
   },
   {
@@ -93,7 +93,7 @@
    "side": "short",
    "qty": 400.0,
    "entry": 0.29998999,
-   "mark": 0.3052,
+   "mark": 0.305195,
    "stop": 0.3112214994597749,
    "since": "2026-11-21T04:01:28Z",
    "notional": 122.08,
@@ -1715,152 +1715,152 @@
    "eq": 309.14
   },
   {
-   "ts": "2026-11-22T13:57:18Z",
-   "eq": 308.76
+   "ts": "2026-11-22T14:01:31Z",
+   "eq": 308.79
   }
  ],
  "watch": [
   {
    "coin": "XBT",
-   "close": 60825.7,
+   "close": 60706.7,
    "high": 84860.7,
    "low": 55089.9,
-   "atr": 651.769154785751,
+   "atr": 647.9095778994878,
    "held": false,
    "blocked": 0
   },
   {
    "coin": "ETH",
-   "close": 1706.14,
+   "close": 1702.36,
    "high": 2529.21,
    "low": 1536.72,
-   "atr": 21.489421125577454,
+   "atr": 21.31368916556651,
    "held": false,
    "blocked": 0
   },
   {
    "coin": "SOL",
-   "close": 70.204,
+   "close": 70.043,
    "high": 109.155,
    "low": 64.816,
-   "atr": 0.9219017055890337,
+   "atr": 0.9151486172015486,
    "held": false,
    "blocked": 0
   },
   {
    "coin": "XRP",
-   "close": 0.92257,
+   "close": 0.92006,
    "high": 1.39872,
    "low": 0.85932,
-   "atr": 0.01188638596352667,
+   "atr": 0.011764853553461341,
    "held": false,
    "blocked": 0
   },
   {
    "coin": "DOGE",
-   "close": 0.05514,
+   "close": 0.05488,
    "high": 0.08564,
    "low": 0.05074,
-   "atr": 0.0007076293712205464,
+   "atr": 0.0007028568233961898,
    "held": false,
    "blocked": 0
   },
   {
    "coin": "BNB",
-   "close": 554.55,
+   "close": 554.77,
    "high": 762.26,
    "low": 503.21,
-   "atr": 5.332751765731294,
+   "atr": 5.297014692188551,
    "held": true,
    "blocked": 0
   },
   {
    "coin": "ADA",
-   "close": 0.14537,
+   "close": 0.14437,
    "high": 0.23898,
    "low": 0.13324,
-   "atr": 0.0019771713227591825,
+   "atr": 0.001969304325886673,
    "held": false,
    "blocked": 0
   },
   {
    "coin": "LINK",
-   "close": 8.796,
+   "close": 8.768,
    "high": 13.091,
    "low": 7.97,
-   "atr": 0.11389454658560645,
+   "atr": 0.11300454259571996,
    "held": false,
    "blocked": 0
   },
   {
    "coin": "AVAX",
-   "close": 6.678,
+   "close": 6.661,
    "high": 10.518,
    "low": 6.01,
-   "atr": 0.09679283966511029,
+   "atr": 0.09601818587167046,
    "held": false,
    "blocked": 0
   },
   {
    "coin": "LTC",
-   "close": 39.73,
+   "close": 39.74,
    "high": 62.42,
    "low": 37.3,
-   "atr": 0.4980017097818816,
+   "atr": 0.49443382640654493,
    "held": false,
    "blocked": 0
   },
   {
    "coin": "BCH",
-   "close": 197.82,
+   "close": 198.49,
    "high": 304.69,
    "low": 179.77,
-   "atr": 2.6178658058267383,
+   "atr": 2.600535261862896,
    "held": false,
    "blocked": 0
   },
   {
    "coin": "DOT",
-   "close": 0.6602,
+   "close": 0.6593,
    "high": 1.2122,
    "low": 0.6186,
-   "atr": 0.009289697851677861,
+   "atr": 0.009203248575078657,
    "held": false,
    "blocked": 0
   },
   {
    "coin": "NEAR",
-   "close": 2.986,
+   "close": 3.022,
    "high": 5.451,
    "low": 2.543,
-   "atr": 0.0587340153830085,
+   "atr": 0.05868156724065046,
    "held": false,
    "blocked": 0
   },
   {
    "coin": "AAVE",
-   "close": 99.0,
+   "close": 98.71,
    "high": 165.83,
    "low": 91.08,
-   "atr": 1.5539576093371665,
+   "atr": 1.5435114209322434,
    "held": false,
    "blocked": 0
   },
   {
    "coin": "UNI",
-   "close": 4.696,
+   "close": 4.695,
    "high": 7.818,
    "low": 4.185,
-   "atr": 0.08357590388718639,
+   "atr": 0.08268765135101583,
    "held": false,
    "blocked": 0
   },
   {
    "coin": "TRX",
-   "close": 0.30495,
+   "close": 0.30508,
    "high": 0.36638,
    "low": 0.29819,
-   "atr": 0.0010519724566138292,
+   "atr": 0.0010475739843510174,
    "held": true,
    "blocked": 0
   }
