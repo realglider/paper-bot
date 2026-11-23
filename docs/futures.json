@@ -1,5 +1,5 @@
 {
- "updated": "2026-11-23T14:24:59Z",
+ "updated": "2026-11-23T14:29:15Z",
  "started": "2026-11-12T19:50:01Z",
  "config": {
   "start": 300.0,
@@ -54,41 +54,24 @@
   }
  },
  "summary": {
-  "equity": 305.04,
-  "pnl": 5.04,
-  "ret": 0.0168,
-  "max_dd": -0.0326,
-  "trades": 1,
+  "equity": 304.77,
+  "pnl": 4.77,
+  "ret": 0.0159,
+  "max_dd": -0.0335,
+  "trades": 2,
   "wins": 1,
-  "win_rate": 1.0,
-  "profit_factor": null,
+  "win_rate": 0.5,
+  "profit_factor": 2.0,
   "avg_win": 9.54,
-  "avg_loss": null,
-  "fees": 0.19,
+  "avg_loss": 4.77,
+  "fees": 0.27,
   "funding": 0.14,
-  "gross": 124.32,
-  "leverage": 0.41,
-  "open": 1,
+  "gross": 0,
+  "leverage": 0.0,
+  "open": 0,
   "liquidated": null
  },
- "positions": [
-  {
-   "coin": "TRX",
-   "side": "short",
-   "qty": 400.0,
-   "entry": 0.29998999,
-   "mark": 0.3108,
-   "stop": 0.3112214994597749,
-   "since": "2026-11-21T04:01:28Z",
-   "notional": 124.32,
-   "margin": 12.0,
-   "pnl": -4.5,
-   "partial": false,
-   "target": 0.2875051517675695,
-   "risk": 0.17,
-   "reason": "Schluss 0.30001 unter dem 960-h-Tief 0.30069"
-  }
- ],
+ "positions": [],
  "curve": [
   {
    "ts": "2026-11-12T19:50:01Z",
@@ -1871,8 +1854,8 @@
    "eq": 305.53
   },
   {
-   "ts": "2026-11-23T14:24:59Z",
-   "eq": 305.04
+   "ts": "2026-11-23T14:29:15Z",
+   "eq": 304.77
   }
  ],
  "watch": [
@@ -2017,11 +2000,28 @@
    "high": 0.36638,
    "low": 0.29819,
    "atr": 0.0009787902054881417,
-   "held": true,
-   "blocked": 0
+   "held": false,
+   "blocked": -1
   }
  ],
  "trades": [
+  {
+   "coin": "TRX",
+   "side": "short",
+   "qty": 400.0,
+   "entry": 0.29998999,
+   "exit": 0.31128374375966683,
+   "entry_ts": "2026-11-21T04:01:28Z",
+   "exit_ts": "2026-11-23T14:27:00Z",
+   "notional": 120.0,
+   "fees": 0.1467,
+   "funding": 0.1028,
+   "pnl": -4.767,
+   "partial": false,
+   "r": -0.95,
+   "reason": "Schluss 0.30001 unter dem 960-h-Tief 0.30069",
+   "exit_reason": "nachgezogener Stop"
+  },
   {
    "coin": "BNB",
    "side": "short",
