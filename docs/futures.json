@@ -1,5 +1,5 @@
 {
- "updated": "2026-11-23T13:54:59Z",
+ "updated": "2026-11-23T13:59:12Z",
  "started": "2026-11-12T19:50:01Z",
  "config": {
   "start": 300.0,
@@ -54,54 +54,38 @@
   }
  },
  "summary": {
-  "equity": 307.89,
-  "pnl": 7.89,
-  "ret": 0.0263,
-  "max_dd": -0.0245,
-  "trades": 0,
-  "wins": 0,
-  "win_rate": null,
+  "equity": 305.8,
+  "pnl": 5.8,
+  "ret": 0.0193,
+  "max_dd": -0.0302,
+  "trades": 1,
+  "wins": 1,
+  "win_rate": 1.0,
   "profit_factor": null,
-  "avg_win": null,
+  "avg_win": 9.54,
   "avg_loss": null,
-  "fees": 0.16,
+  "fees": 0.19,
   "funding": 0.14,
-  "gross": 167.36,
-  "leverage": 0.54,
-  "open": 2,
+  "gross": 123.56,
+  "leverage": 0.4,
+  "open": 1,
   "liquidated": null
  },
  "positions": [
-  {
-   "coin": "BNB",
-   "side": "short",
-   "qty": 0.08,
-   "entry": 646.530668,
-   "mark": 555.0,
-   "stop": 573.2466210556495,
-   "since": "2026-11-13T03:02:02Z",
-   "notional": 44.4,
-   "margin": 5.17,
-   "pnl": 11.03,
-   "partial": true,
-   "target": null,
-   "risk": 1.46,
-   "reason": "Schluss 645.97 unter dem 960-h-Tief 648.87"
-  },
   {
    "coin": "TRX",
    "side": "short",
    "qty": 400.0,
    "entry": 0.29998999,
-   "mark": 0.30741,
+   "mark": 0.3089,
    "stop": 0.3112214994597749,
    "since": "2026-11-21T04:01:28Z",
-   "notional": 122.96,
+   "notional": 123.56,
    "margin": 12.0,
-   "pnl": -3.14,
+   "pnl": -3.74,
    "partial": false,
    "target": 0.2875051517675695,
-   "risk": 1.52,
+   "risk": 0.93,
    "reason": "Schluss 0.30001 unter dem 960-h-Tief 0.30069"
   }
  ],
@@ -1883,8 +1867,8 @@
    "eq": 307.84
   },
   {
-   "ts": "2026-11-23T13:54:59Z",
-   "eq": 307.89
+   "ts": "2026-11-23T13:59:12Z",
+   "eq": 305.8
   }
  ],
  "watch": [
@@ -1939,8 +1923,8 @@
    "high": 762.26,
    "low": 503.21,
    "atr": 4.988795208310995,
-   "held": true,
-   "blocked": 0
+   "held": false,
+   "blocked": -1
   },
   {
    "coin": "ADA",
@@ -2033,7 +2017,25 @@
    "blocked": 0
   }
  ],
- "trades": [],
+ "trades": [
+  {
+   "coin": "BNB",
+   "side": "short",
+   "qty": 0.16,
+   "entry": 646.530668,
+   "exit": 573.3612703798606,
+   "entry_ts": "2026-11-13T03:02:02Z",
+   "exit_ts": "2026-11-23T13:58:00Z",
+   "notional": 103.44,
+   "fees": 0.0896,
+   "funding": 0.0366,
+   "pnl": 9.5361,
+   "partial": true,
+   "r": 1.24,
+   "reason": "Schluss 645.97 unter dem 960-h-Tief 648.87",
+   "exit_reason": "nachgezogener Stop"
+  }
+ ],
  "errors": [],
  "run_errors": 0
 }

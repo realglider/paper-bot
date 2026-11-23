@@ -1,1 +1,19 @@
-[]
+[
+ {
+  "coin": "BNB",
+  "side": "short",
+  "qty": 0.16,
+  "entry": 646.530668,
+  "exit": 573.3612703798606,
+  "entry_ts": "2026-11-13T03:02:02Z",
+  "exit_ts": "2026-11-23T13:58:00Z",
+  "notional": 103.44,
+  "fees": 0.0896,
+  "funding": 0.0366,
+  "pnl": 9.5361,
+  "partial": true,
+  "r": 1.24,
+  "reason": "Schluss 645.97 unter dem 960-h-Tief 648.87",
+  "exit_reason": "nachgezogener Stop"
+ }
+]
