@@ -17,7 +17,7 @@ from urllib.error import HTTPError, URLError
 HERE = pathlib.Path(__file__).resolve().parent
 DB = HERE / "state.sqlite3"
 STATUS = HERE / "status.json"
-API = "https://api.geckoterminal.com/api/v2/networks/solana/trending_pools?page=1"
+API_ROOT = "https://api.geckoterminal.com/api/v2/networks/solana/"
 START_EUR = 200.0
 STAKE_EUR = 15.0
 COST_PER_SIDE = 0.012   # illustrative 0.2% fees + 1.0% slippage
@@ -25,9 +25,9 @@ FIXED_ROUNDTRIP_EUR = 0.08
 MAX_POSITIONS = 2
 MAX_DAILY_LOSS_EUR = 6.0
 MAX_TOTAL_LOSS_EUR = 20.0
-MIN_LIQ_USD = 50_000.0
-MIN_VOLUME_USD = 200_000.0
-MIN_OBSERVATIONS = 5
+MIN_LIQ_USD = 40_000.0
+MIN_VOLUME_USD = 150_000.0
+MIN_OBSERVATIONS = 3
 OBS_WINDOW_SEC = 90 * 60
 MAX_HOLD_SEC = 2 * 3600
 COOLDOWN_SEC = 3 * 3600
@@ -35,15 +35,45 @@ COOLDOWN_SEC = 3 * 3600
 def now() -> int:
     return int(time.time())
 
-def get_market():
-    request = urllib.request.Request(API, headers={
-        "Accept": "application/json", "User-Agent": "SolanaEdgePaper/1.0"
+def get_json(path):
+    request = urllib.request.Request(API_ROOT + path, headers={
+        "Accept": "application/json", "User-Agent": "SolanaEdgePaper/2.0"
     })
     with urllib.request.urlopen(request, timeout=18) as response:
         data = json.load(response)
     if not isinstance(data.get("data"), list):
         raise ValueError("Unexpected GeckoTerminal response")
     return data["data"]
+
+
+def get_market(db):
+    """Track existing pools even after they drop out of Trending.
+
+    Discovery is a point-in-time universe; multi lookup keeps continuity for
+    tracked pools and prevents open positions from becoming invisible.
+    """
+    trending = get_json("trending_pools?page=1")
+    known = {str((p.get("attributes") or {}).get("address") or
+                 str(p.get("id", "")).removeprefix("solana_")): p
+             for p in trending}
+    old = [r["pool"] for r in db.execute(
+        """SELECT pool FROM prices WHERE ts>=? GROUP BY pool
+           ORDER BY MAX(ts) DESC LIMIT 20""", (now()-48*3600,))]
+    active = [r["pool"] for r in db.execute("SELECT pool FROM positions")]
+    active += [r["pool"] for r in db.execute("SELECT pool FROM pending")]
+    follow = list(dict.fromkeys(active + old))
+    missing = [address for address in follow
+               if address not in known and 32 <= len(address) <= 55][:20]
+    if missing:
+        try:
+            for p in get_json("pools/multi/" + ",".join(missing)):
+                a = p.get("attributes") or {}
+                addr = str(a.get("address") or str(p.get("id", "")).removeprefix("solana_"))
+                known[addr] = p
+        except (HTTPError, URLError, TimeoutError, ValueError) as err:
+            # Do not lose the normal trending scan when enrichment is rate-limited.
+            print("WARN existing-pool refresh: " + str(err)[:150])
+    return list(known.values())
 
 def connect():
     db = sqlite3.connect(DB, timeout=20)
@@ -140,6 +170,13 @@ def run_tick(db, market, ts):
             (ts,p["pool"],p["name"],p["price"],p["liquidity"],p["volume"],p["change5m"]))
     db.commit()
     messages = []
+    diagnostics = {"observed": len(by_pool), "liquid": 0, "volume_ok": 0,
+                   "history_ok": 0, "momentum_ok": 0, "queued": 0}
+    for pp in by_pool.values():
+        if pp["liquidity"] >= MIN_LIQ_USD:
+            diagnostics["liquid"] += 1
+            if pp["volume"] >= MIN_VOLUME_USD:
+                diagnostics["volume_ok"] += 1
     # Fill existing exit orders only when a fresh independent snapshot arrives.
     for pend in db.execute("SELECT * FROM pending WHERE action='SELL'").fetchall():
         p = by_pool.get(pend["pool"])
@@ -193,7 +230,7 @@ def run_tick(db, market, ts):
     queued = db.execute("SELECT COUNT(*) AS n FROM pending WHERE action='BUY'").fetchone()["n"]
     if can_buy and n + queued < MAX_POSITIONS:
         selected = sorted(by_pool.values(), key=lambda x: x["volume"], reverse=True)
-        for p in selected[:12]:
+        for p in selected[:40]:
             if p["liquidity"] < MIN_LIQ_USD or p["volume"] < MIN_VOLUME_USD:
                 continue
             if db.execute("SELECT 1 FROM positions WHERE pool=?", (p["pool"],)).fetchone():
@@ -201,21 +238,26 @@ def run_tick(db, market, ts):
             if db.execute("SELECT 1 FROM pending WHERE pool=?", (p["pool"],)).fetchone():
                 continue
             prev = db.execute("""SELECT ts,price FROM prices WHERE pool=? AND ts>=? AND ts<?
-                ORDER BY ts ASC LIMIT 1""", (p["pool"], ts - OBS_WINDOW_SEC, ts - 45*60)).fetchone()
+                ORDER BY ts ASC LIMIT 1""", (p["pool"], ts - OBS_WINDOW_SEC, ts - 30*60)).fetchone()
             count = db.execute("""SELECT COUNT(*) AS n FROM prices
                 WHERE pool=? AND ts>=?""", (p["pool"], ts - OBS_WINDOW_SEC)).fetchone()["n"]
             last = db.execute("SELECT MAX(exit_ts) AS x FROM trades WHERE pool=?", (p["pool"],)).fetchone()["x"]
             if not prev or count < MIN_OBSERVATIONS or (last and ts-last < COOLDOWN_SEC):
                 continue
+            diagnostics["history_ok"] += 1
             change = p["price"]/prev["price"]-1
-            if 0.03 <= change <= 0.12 and -15 <= p["change5m"] <= 12:
+            if 0.02 <= change <= 0.10 and -15 <= p["change5m"] <= 12:
+                diagnostics["momentum_ok"] += 1
                 db.execute("INSERT OR IGNORE INTO pending VALUES(?,?,?,?,?)",
                            (p["pool"],p["name"],ts,"BUY","momentum_90m"))
                 messages.append(f"SIGNAL {p['name']} +{change*100:.1f}%")
                 queued += 1
+                diagnostics["queued"] += 1
                 if n + queued >= MAX_POSITIONS:
                     break
     db.execute("DELETE FROM prices WHERE ts<?", (ts - 14*86400,))
+    db.commit()
+    db.execute("INSERT OR REPLACE INTO meta(k,v) VALUES (?,?)", ("diagnostics", json.dumps(diagnostics)))
     db.commit()
     return by_pool, messages
 
@@ -228,7 +270,7 @@ def publish(db, ts, pools, messages, error=None):
     real = realized(db)
     total = real + unrealized
     out = {
-        "version": "paper-1", "updated_at": dt.datetime.fromtimestamp(ts,dt.timezone.utc).isoformat(),
+        "version": "paper-2", "updated_at": dt.datetime.fromtimestamp(ts,dt.timezone.utc).isoformat(),
         "mode": "PAPER", "wallet_connected": False, "status": "DEGRADED" if error else "OK",
         "error": error, "start_eur": START_EUR, "realized_eur": round(real,4),
         "unrealized_eur": round(unrealized,4), "equity_estimate_eur": round(START_EUR+total,4),
@@ -237,6 +279,7 @@ def publish(db, ts, pools, messages, error=None):
         "closed_trades": [dict(t) for t in closed],
         "pending": [dict(p) for p in pending],
         "observed_pools": len(pools), "notes": messages,
+        "diagnostics": json.loads((db.execute("SELECT v FROM meta WHERE k='diagnostics'").fetchone() or {"v":"{}"})["v"]),
         "limits": {"max_positions": MAX_POSITIONS, "stake_eur": STAKE_EUR,
                    "daily_loss_eur": MAX_DAILY_LOSS_EUR, "total_loss_eur": MAX_TOTAL_LOSS_EUR},
         "caveat": "Paper fills are based on snapshots and illustrative slippage; not executable quotes."
@@ -249,12 +292,12 @@ def main():
     ts = now()
     db = connect()
     try:
-        market = get_market()
+        market = get_market(db)
         pools, messages = run_tick(db, market, ts)
         summary = publish(db, ts, pools, messages)
         print(json.dumps({"status": "OK", "observed": len(pools),
                           "open": len(summary["positions"]), "closed": len(summary["closed_trades"]),
-                          "equity": summary["equity_estimate_eur"], "messages": messages}))
+                          "equity": summary["equity_estimate_eur"], "messages": messages, "diagnostics":summary["diagnostics"]}))
     except (HTTPError, URLError, TimeoutError, ValueError, OSError) as exc:
         # Explicitly record outage; no paper orders on incomplete snapshots.
         summary = publish(db, ts, {}, [], f"{type(exc).__name__}: {str(exc)[:140]}")
