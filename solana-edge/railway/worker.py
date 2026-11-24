@@ -11,6 +11,7 @@ import os
 import pathlib
 import sqlite3
 import time
+import math
 import urllib.request
 from urllib.error import HTTPError, URLError
 
@@ -52,7 +53,7 @@ def get_market(db):
     Discovery is a point-in-time universe; multi lookup keeps continuity for
     tracked pools and prevents open positions from becoming invisible.
     """
-    trending = get_json("trending_pools?page=1")
+    trending = get_json("new_pools?page=1" if int(now()/60)%2 else "trending_pools?page=1")
     known = {str((p.get("attributes") or {}).get("address") or
                  str(p.get("id", "")).removeprefix("solana_")): p
              for p in trending}
@@ -64,7 +65,7 @@ def get_market(db):
     follow = list(dict.fromkeys(active + old))
     missing = [address for address in follow
                if address not in known and 32 <= len(address) <= 55][:20]
-    if missing:
+    if missing and int(now()/30)%2 == 0:
         try:
             for p in get_json("pools/multi/" + ",".join(missing)):
                 a = p.get("attributes") or {}
@@ -142,11 +143,19 @@ def parse_pools(raw, ts):
             continue
         if not 32 <= len(addr) <= 55 or price <= 0 or liquidity <= 0 or volume <= 0:
             continue
-        if age_ts and ts - age_ts < 3600:
+        if age_ts and ts - age_ts < 600:
             continue
         name = str(a.get("name") or "Unknown pool")[:80]
+        tx = (a.get("transactions") or {}).get("m5") or {}
+        try:
+            buys, sells = int(tx.get("buys") or 0), int(tx.get("sells") or 0)
+            v5 = float((a.get("volume_usd") or {}).get("m5") or 0)
+        except (ValueError, TypeError):
+            continue
+        if not all(math.isfinite(v) for v in (price,liquidity,volume,change5m,v5)):
+            continue
         pool_map[addr] = dict(pool=addr, name=name, price=price, liquidity=liquidity,
-                              volume=volume, change5m=change5m)
+                              volume=volume, change5m=change5m, buys=buys, sells=sells, v5=v5)
     return pool_map
 
 def realized(db):
@@ -287,6 +296,88 @@ def publish(db, ts, pools, messages, error=None):
     STATUS.write_text(json.dumps(out, ensure_ascii=False, indent=2)+"\n", encoding="utf-8")
     return out
 
+# V7 experiments use a separate database; original account is retained unchanged.
+STRATEGIES = ("momentum", "volume_breakout", "trailing_trend")
+V7 = DB.parent / "strategies.sqlite3"
+def experiment_tick(market, ts):
+    pools = parse_pools(market, ts)
+    with sqlite3.connect(V7, timeout=20) as db:
+        db.row_factory=sqlite3.Row
+        db.executescript("""
+        CREATE TABLE IF NOT EXISTS samples(t INTEGER,pool TEXT,price REAL,v5 REAL,PRIMARY KEY(t,pool));
+        CREATE TABLE IF NOT EXISTS signals(strategy TEXT,pool TEXT,name TEXT,t INTEGER,price REAL,PRIMARY KEY(strategy,pool));
+        CREATE TABLE IF NOT EXISTS opens(strategy TEXT,pool TEXT,name TEXT,t INTEGER,entry REAL,peak REAL,mark REAL,marked INTEGER,PRIMARY KEY(strategy,pool));
+        CREATE TABLE IF NOT EXISTS closes(strategy TEXT,pool TEXT,name TEXT,t INTEGER,entry REAL,exit REAL,pnl REAL,reason TEXT);
+        """)
+        # Observe current snapshots before deciding; signals from earlier ticks only can fill.
+        for p in pools.values():
+            db.execute("INSERT OR IGNORE INTO samples VALUES(?,?,?,?)",(ts,p["pool"],p["price"],p["v5"]))
+        accounts=[]
+        for strategy in STRATEGIES:
+            notes=[]
+            total=db.execute("SELECT COALESCE(SUM(pnl),0) FROM closes WHERE strategy=?",(strategy,)).fetchone()[0]
+            day=ts-ts%86400
+            daily=db.execute("SELECT COALESCE(SUM(pnl),0) FROM closes WHERE strategy=? AND t>=?",(strategy,day)).fetchone()[0]
+            # Exit on newly observed market price, not a guaranteed stop-price fill.
+            for pos in db.execute("SELECT * FROM opens WHERE strategy=?",(strategy,)).fetchall():
+                p=pools.get(pos["pool"])
+                if not p:
+                    continue
+                px=p["price"]; peak=max(px,pos["peak"])
+                move=px/pos["entry"]-1
+                reason="stop" if move<=-.05 else ("take" if strategy!="trailing_trend" and move>=.12 else ("trail" if strategy=="trailing_trend" and peak/pos["entry"]>=1.06 and px/peak<=.95 else ("timeout" if ts-pos["t"]>=7200 else None)))
+                if reason:
+                    pnl=net_pnl(15,pos["entry"],px)
+                    db.execute("INSERT INTO closes VALUES(?,?,?,?,?,?,?,?)",(strategy,pos["pool"],pos["name"],ts,pos["entry"],px,pnl,reason))
+                    db.execute("DELETE FROM opens WHERE strategy=? AND pool=?",(strategy,pos["pool"]))
+                    total+=pnl;daily+=pnl
+                    notes.append("CLOSE "+pos["name"]+" "+str(round(pnl,2)))
+                else:
+                    db.execute("UPDATE opens SET peak=?,mark=?,marked=? WHERE strategy=? AND pool=?",(peak,px,ts,strategy,pos["pool"]))
+            positions=db.execute("SELECT * FROM opens WHERE strategy=?",(strategy,)).fetchall()
+            unreal=sum(net_pnl(15,r["entry"],r["mark"]) for r in positions)
+            stale=sum(ts-r["marked"]>120 for r in positions)
+            can_buy=total+min(0,unreal)>-20 and daily+min(0,unreal)>-6 and stale==0
+            count=len(positions)
+            for sig in db.execute("SELECT * FROM signals WHERE strategy=?",(strategy,)).fetchall():
+                if sig["t"]>=ts:continue
+                p=pools.get(sig["pool"])
+                if can_buy and count<2 and ts-sig["t"]<=120 and p and p["liquidity"]>=40000 and p["volume"]>=150000 and abs(p["price"]/sig["price"]-1)<=.03:
+                    db.execute("INSERT OR IGNORE INTO opens VALUES(?,?,?,?,?,?,?,?)",(strategy,p["pool"],p["name"],ts,p["price"],p["price"],p["price"],ts))
+                    count+=1;notes.append("OPEN "+p["name"])
+                db.execute("DELETE FROM signals WHERE strategy=? AND pool=?",(strategy,sig["pool"]))
+            eligible=0; ready=0; matches=0
+            if can_buy:
+                for p in sorted(pools.values(),key=lambda q:q["v5"],reverse=True):
+                    if p["liquidity"]<40000 or p["volume"]<150000:continue
+                    eligible+=1
+                    if db.execute("SELECT 1 FROM opens WHERE strategy=? AND pool=?",(strategy,p["pool"])).fetchone():continue
+                    if db.execute("SELECT 1 FROM closes WHERE strategy=? AND pool=? AND t>?",(strategy,p["pool"],ts-1800)).fetchone():continue
+                    history=db.execute("SELECT * FROM samples WHERE pool=? AND t BETWEEN ? AND ? ORDER BY t",(p["pool"],ts-900,ts-120)).fetchall()
+                    if len(history)<3:continue
+                    ready+=1
+                    change=p["price"]/history[0]["price"]-1
+                    n=p["buys"]+p["sells"]; pressure=p["buys"]/max(n,1)
+                    mean=sum(q["v5"] for q in history)/len(history)
+                    if strategy=="momentum":
+                        match=.02<=change<=.12 and 1<=p["change5m"]<=10 and n>=15 and pressure>=.60
+                    elif strategy=="volume_breakout":
+                        match=mean>0 and p["v5"]>=1.8*mean and p["v5"]>=1000 and 1<=p["change5m"]<=12 and n>=15 and pressure>=.60
+                    else:
+                        match=.015<=change<=.10 and p["price"]>max(q["price"] for q in history) and n>=10 and pressure>=.55
+                    if match:
+                        matches+=1
+                        if count<2:
+                            db.execute("INSERT OR IGNORE INTO signals VALUES(?,?,?,?,?)",(strategy,p["pool"],p["name"],ts,p["price"]))
+                            count+=1
+            positions=[dict(q) for q in db.execute("SELECT * FROM opens WHERE strategy=?",(strategy,))]
+            trades=[dict(q) for q in db.execute("SELECT * FROM closes WHERE strategy=? ORDER BY t DESC LIMIT 30",(strategy,))]
+            n=db.execute("SELECT COUNT(*) FROM closes WHERE strategy=?",(strategy,)).fetchone()[0]
+            unreal=sum(net_pnl(15,r["entry"],r["mark"]) for r in positions)
+            accounts.append(dict(strategy=strategy,start_eur=200,realized_eur=round(total,4),equity_estimate_eur=round(200+total+unreal,4),positions=positions,closed_trades=trades,trade_count=n,eligible=eligible,history_ready=ready,signals=matches,stale_positions=stale,notes=notes))
+        db.execute("DELETE FROM samples WHERE t<?",(ts-2*86400,))
+    return accounts
+
 def main():
     DB.parent.mkdir(parents=True, exist_ok=True)
     ts = now()
@@ -295,6 +386,12 @@ def main():
         market = get_market(db)
         pools, messages = run_tick(db, market, ts)
         summary = publish(db, ts, pools, messages)
+        summary["strategies"] = experiment_tick(market, ts)
+        summary["version"] = "paper-3"
+        tmp=STATUS.with_suffix(".tmp")
+        tmp.write_text(json.dumps(summary,ensure_ascii=False),encoding="utf-8")
+        tmp.replace(STATUS)
+        print(json.dumps({"experiments": [{"strategy":a["strategy"],"signals":a["signals"],"positions":len(a["positions"]),"trades":a["trade_count"]} for a in summary["strategies"]]}),flush=True)
         print(json.dumps({"status": "OK", "observed": len(pools),
                           "open": len(summary["positions"]), "closed": len(summary["closed_trades"]),
                           "equity": summary["equity_estimate_eur"], "messages": messages, "diagnostics":summary["diagnostics"]}))
