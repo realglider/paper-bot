@@ -1,5 +1,5 @@
 {
- "updated": "2026-11-25T00:01:08Z",
+ "updated": "2026-11-25T00:06:06Z",
  "started": "2026-11-14T23:05:09Z",
  "config": {
   "start": 1000.0,
@@ -39,20 +39,20 @@
   }
  },
  "summary": {
-  "equity": 999.71,
-  "pnl": -0.29,
-  "ret": -0.0003,
+  "equity": 999.16,
+  "pnl": -0.84,
+  "ret": -0.0008,
   "max_dd": -0.0059,
   "open": 1,
   "short_notional": 48.9,
-  "hedge_value": 59.75,
+  "hedge_value": 59.72,
   "hedge_lots": 1,
-  "hedge_pnl": -1.48,
+  "hedge_pnl": -1.5,
   "trades": 0,
   "wins": 0,
   "win_rate": null,
   "avg_ret": null,
-  "shorts_pnl": 1.19,
+  "shorts_pnl": 0.67,
   "fees": 0.07,
   "funding": 0.08
  },
@@ -62,12 +62,12 @@
    "listed": "2026-11-19",
    "since": "2026-11-23T00:05:41Z",
    "entry": 116.42677400000001,
-   "mark": 113.37,
+   "mark": 114.62,
    "stop": 174.640161,
    "exit": "2026-12-23",
    "notional": 48.9,
-   "pnl": 1.19,
-   "move": -0.0263,
+   "pnl": 0.67,
+   "move": -0.0155,
    "funding": 0.06
   }
  ],
@@ -1759,8 +1759,8 @@
    "eq": 1000.21
   },
   {
-   "ts": "2026-11-25T00:01:08Z",
-   "eq": 999.71
+   "ts": "2026-11-25T00:06:06Z",
+   "eq": 999.16
   }
  ],
  "trades": [],
