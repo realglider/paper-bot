@@ -1,5 +1,5 @@
 {
- "cash": 999.8501779058078,
+ "cash": 999.8441391188078,
  "positions": {
   "NAVER": {
    "lots": 42,
@@ -8,8 +8,8 @@
    "stop": 174.640161,
    "notional": 48.89924508,
    "ts": 1795392341569,
-   "checked": 1795651140000,
-   "funded": 1795651163644,
+   "checked": 1795651440000,
+   "funded": 1795651471411,
    "exit_at": 1797984000000,
    "listed": 1795078800000,
    "fee": 0.029339547047999997,
@@ -20,8 +20,8 @@
   "lots": 1,
   "qty": 0.001,
   "entry": 61175.93274,
-  "funded": 1795651163644,
-  "realized": -0.057508780343999984
+  "funded": 1795651471411,
+  "realized": -0.06354756734399998
  },
  "seen": {
   "ETH": "vor Start gelistet",
@@ -743,11 +743,16 @@
   "ANT": "Aktien-Token",
   "SOXX": "Aktien-Token",
   "ZCSH": "Aktien-Token",
-  "NAVER": "gehandelt"
+  "NAVER": "gehandelt",
+  "AMC": "Aktien-Token",
+  "BITO": "Aktien-Token",
+  "EWZS": "Aktien-Token",
+  "IBIT": "Aktien-Token",
+  "SHOP": "Aktien-Token"
  },
- "last_scan": 1795564800000,
+ "last_scan": 1795651200000,
  "fees": 0.06604510669199999,
- "funding": 0.0837769875,
+ "funding": 0.0898157745,
  "started": "2026-11-14T23:05:09Z",
  "upcoming": []
 }
