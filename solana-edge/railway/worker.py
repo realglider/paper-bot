@@ -407,6 +407,99 @@ def experiment_tick(market, ts):
         db.execute("DELETE FROM samples WHERE t<?",(ts-2*86400,))
     return accounts
 
+# Range Breaker: separate experimental account. Uses sampled minute highs,
+# not exchange OHLCV; never makes up missing intervals or fills at target prices.
+def range_tick(market, ts):
+    pools = parse_pools(market, ts)
+    notes=[]
+    with sqlite3.connect(V7, timeout=20) as db:
+        db.row_factory=sqlite3.Row
+        db.executescript("""
+        CREATE TABLE IF NOT EXISTS rb_signals(pool TEXT PRIMARY KEY,name TEXT,t INTEGER,price REAL,ceiling REAL,stop REAL);
+        CREATE TABLE IF NOT EXISTS rb_opens(pool TEXT PRIMARY KEY,name TEXT,t INTEGER,entry REAL,peak REAL,mark REAL,marked INTEGER,stop REAL,risk REAL,remaining REAL,stage INTEGER,partial REAL);
+        CREATE TABLE IF NOT EXISTS rb_legs(pool TEXT,t INTEGER,pnl REAL);
+        CREATE TABLE IF NOT EXISTS rb_closes(pool TEXT,name TEXT,t INTEGER,entry REAL,exit REAL,pnl REAL,reason TEXT);
+        """)
+        def liquid(p):
+            return p and p["liquidity"]>=50000 and p["volume"]>=150000
+        def leg(pos,px,fraction):
+            pnl=net_pnl(15,pos["entry"],px)*fraction
+            db.execute("INSERT INTO rb_legs VALUES(?,?,?)",(pos["pool"],ts,pnl))
+            return pnl
+        for pos in db.execute("SELECT * FROM rb_opens").fetchall():
+            p=pools.get(pos["pool"])
+            if not p:
+                continue
+            px=p["price"]; peak=max(pos["peak"],px)
+            remaining=pos["remaining"]; stage=pos["stage"]; partial=pos["partial"]
+            # Stop has priority. Fill at the observed price, including gaps.
+            stop=pos["stop"]
+            if stage>=1: stop=max(stop,pos["entry"])
+            if stage>=3: stop=max(stop,peak*.96)
+            reason="stop" if px<=stop else ("timeout" if ts-pos["t"]>=7200 else None)
+            if reason:
+                partial+=leg(pos,px,remaining)
+                db.execute("INSERT INTO rb_closes VALUES(?,?,?,?,?,?,?)",(pos["pool"],pos["name"],ts,pos["entry"],px,partial,reason))
+                db.execute("DELETE FROM rb_opens WHERE pool=?",(pos["pool"],))
+                notes.append("CLOSE "+pos["name"]+" "+str(round(partial,2)))
+                continue
+            while stage<3 and px>=pos["entry"]+(stage+1)*pos["risk"]:
+                partial+=leg(pos,px,.25)
+                remaining-=.25
+                stage+=1
+                notes.append("TP"+str(stage)+" "+pos["name"])
+            db.execute("UPDATE rb_opens SET peak=?,mark=?,marked=?,remaining=?,stage=?,partial=? WHERE pool=?",(peak,px,ts,remaining,stage,partial,pos["pool"]))
+        def account():
+            positions=[dict(r) for r in db.execute("SELECT * FROM rb_opens")]
+            realized=db.execute("SELECT COALESCE(SUM(pnl),0) FROM rb_legs").fetchone()[0]
+            daily=db.execute("SELECT COALESCE(SUM(pnl),0) FROM rb_legs WHERE t>=?",(ts-ts%86400,)).fetchone()[0]
+            unreal=sum(net_pnl(15,r["entry"],r["mark"])*r["remaining"] for r in positions)
+            stale=sum(ts-r["marked"]>120 for r in positions)
+            return positions,realized,daily,unreal,stale
+        positions,real,daily,unreal,stale=account()
+        can_buy=real+min(0,unreal)>-20 and daily+min(0,unreal)>-6 and stale==0
+        count=len(positions)
+        for sig in db.execute("SELECT * FROM rb_signals").fetchall():
+            if sig["t"]>=ts: continue
+            p=pools.get(sig["pool"])
+            if can_buy and count<2 and ts-sig["t"]<=120 and liquid(p):
+                px=p["price"]; risk=px-sig["stop"]
+                if px>=sig["ceiling"] and abs(px/sig["price"]-1)<=.03 and .015<=risk/px<=.05:
+                    db.execute("INSERT OR IGNORE INTO rb_opens VALUES(?,?,?,?,?,?,?,?,?,?,?,?)",(sig["pool"],sig["name"],ts,px,px,px,ts,sig["stop"],risk,1.,0,0.))
+                    count+=1
+                    notes.append("OPEN "+sig["name"])
+            db.execute("DELETE FROM rb_signals WHERE pool=?",(sig["pool"],))
+        eligible=ready=matches=0
+        cutoff=ts-ts%60
+        if can_buy:
+            for p in sorted(pools.values(),key=lambda x:x["v5"],reverse=True):
+                if not liquid(p): continue
+                eligible+=1
+                if db.execute("SELECT 1 FROM rb_opens WHERE pool=?",(p["pool"],)).fetchone(): continue
+                if db.execute("SELECT 1 FROM rb_closes WHERE pool=? AND t>?",(p["pool"],ts-1800)).fetchone(): continue
+                # Last 20 distinct completed sampled minute intervals.
+                hist=db.execute("""SELECT CAST(t/60 AS INTEGER) AS minute,MAX(price) AS hi,MIN(price) AS lo,AVG(v5) AS v
+                    FROM samples WHERE pool=? AND t>=? AND t<? GROUP BY CAST(t/60 AS INTEGER)
+                    ORDER BY minute DESC LIMIT 20""",(p["pool"],cutoff-2400,cutoff)).fetchall()
+                if len(hist)!=20 or cutoff//60-hist[0]["minute"]>2 or any(hist[i]["minute"]-hist[i+1]["minute"]>3 for i in range(19)): continue
+                ready+=1
+                ceiling=max(r["hi"] for r in hist); floor=min(r["lo"] for r in hist)
+                avg=sum(r["v"] for r in hist)/20
+                n=p["buys"]+p["sells"]
+                # Break above the prior range, not a late chase.
+                if (ceiling>0 and floor>0 and ceiling/floor<=1.15 and 1.003<=p["price"]/ceiling<=1.03
+                    and avg>0 and p["v5"]>=1.5*avg and n>=15 and p["buys"]/n>=.60):
+                    matches+=1
+                    if count<2:
+                        db.execute("INSERT OR IGNORE INTO rb_signals VALUES(?,?,?,?,?,?)",(p["pool"],p["name"],ts,p["price"],ceiling,ceiling*.98))
+                        count+=1
+        positions,real,daily,unreal,stale=account()
+        trades=[dict(r) for r in db.execute("SELECT * FROM rb_closes ORDER BY t DESC LIMIT 30")]
+        trade_count=db.execute("SELECT COUNT(*) FROM rb_closes").fetchone()[0]
+        return dict(strategy="range_breaker",start_eur=200,realized_eur=round(real,4),equity_estimate_eur=round(200+real+unreal,4),
+                    positions=positions,closed_trades=trades,trade_count=trade_count,eligible=eligible,history_ready=ready,signals=matches,stale_positions=stale,notes=notes,
+                    data_basis="20 completed sampled minute intervals; rolling 5m volume proxy; partial fills at observed prices")
+
 def main():
     DB.parent.mkdir(parents=True, exist_ok=True)
     ts = now()
@@ -416,7 +509,8 @@ def main():
         pools, messages = run_tick(db, market, ts)
         summary = publish(db, ts, pools, messages)
         summary["strategies"] = experiment_tick(market, ts)
-        summary["version"] = "paper-4"
+        summary["strategies"].append(range_tick(market, ts))
+        summary["version"] = "paper-5"
         tmp=STATUS.with_suffix(".tmp")
         tmp.write_text(json.dumps(summary,ensure_ascii=False),encoding="utf-8")
         tmp.replace(STATUS)
