@@ -297,7 +297,7 @@ def publish(db, ts, pools, messages, error=None):
     return out
 
 # V7 experiments use a separate database; original account is retained unchanged.
-STRATEGIES = ("momentum", "volume_breakout", "trailing_trend")
+STRATEGIES = ("momentum", "volume_breakout", "trailing_trend", "pullback_hunter", "smart_accumulation")
 V7 = DB.parent / "strategies.sqlite3"
 def experiment_tick(market, ts):
     pools = parse_pools(market, ts)
@@ -325,7 +325,10 @@ def experiment_tick(market, ts):
                     continue
                 px=p["price"]; peak=max(px,pos["peak"])
                 move=px/pos["entry"]-1
-                reason="stop" if move<=-.05 else ("take" if strategy!="trailing_trend" and move>=.12 else ("trail" if strategy=="trailing_trend" and peak/pos["entry"]>=1.06 and px/peak<=.95 else ("timeout" if ts-pos["t"]>=7200 else None)))
+                if strategy in ("pullback_hunter","smart_accumulation"):
+                    reason="stop" if move<=-.05 else ("trail" if peak/pos["entry"]>=1.06 and px/peak<=.96 else ("timeout" if ts-pos["t"]>=7200 else None))
+                else:
+                    reason="stop" if move<=-.05 else ("take" if strategy!="trailing_trend" and move>=.12 else ("trail" if strategy=="trailing_trend" and peak/pos["entry"]>=1.06 and px/peak<=.95 else ("timeout" if ts-pos["t"]>=7200 else None)))
                 if reason:
                     pnl=net_pnl(15,pos["entry"],px)
                     db.execute("INSERT INTO closes VALUES(?,?,?,?,?,?,?,?)",(strategy,pos["pool"],pos["name"],ts,pos["entry"],px,pnl,reason))
@@ -363,8 +366,34 @@ def experiment_tick(market, ts):
                         match=.02<=change<=.12 and 1<=p["change5m"]<=10 and n>=15 and pressure>=.60
                     elif strategy=="volume_breakout":
                         match=mean>0 and p["v5"]>=1.8*mean and p["v5"]>=1000 and 1<=p["change5m"]<=12 and n>=15 and pressure>=.60
-                    else:
+                    elif strategy=="trailing_trend":
                         match=.015<=change<=.10 and p["price"]>max(q["price"] for q in history) and n>=10 and pressure>=.55
+                    elif strategy=="pullback_hunter":
+                        # Chronological peak, later trough, then recovery. No future observations.
+                        prices=[q["price"] for q in history]
+                        peak_i=max(range(len(prices)),key=lambda i:prices[i])
+                        high=prices[peak_i]
+                        low=min(prices[peak_i+1:],default=high)
+                        drop=1-low/high
+                        match=(len(prices)>=6 and history[-1]["t"]-history[0]["t"]>=300
+                               and peak_i>=1 and peak_i<len(prices)-1
+                               and high/prices[0]>=1.06 and .05<=drop<=.12
+                               and 1.02<=p["price"]/low<=1.07 and p["price"]<high
+                               and n>=15 and pressure>=.60 and p["change5m"]>0)
+                    elif strategy=="smart_accumulation":
+                        # Compare early and late rolling volume observations, then require breakout.
+                        mid=len(history)//2
+                        early=history[:mid]; late=history[mid:]
+                        top=max(q["price"] for q in history)
+                        bottom=min(q["price"] for q in history)
+                        ve=sum(q["v5"] for q in early)/max(len(early),1)
+                        vl=sum(q["v5"] for q in late)/max(len(late),1)
+                        match=(len(history)>=6 and history[-1]["t"]-history[0]["t"]>=300
+                               and top/bottom<=1.05 and 1.005<=p["price"]/top<=1.04
+                               and ve>0 and vl>=1.25*ve and p["v5"]>=1.15*vl
+                               and p["v5"]>=1000 and n>=15 and pressure>=.60)
+                    else:
+                        match=False
                     if match:
                         matches+=1
                         if count<2:
@@ -387,7 +416,7 @@ def main():
         pools, messages = run_tick(db, market, ts)
         summary = publish(db, ts, pools, messages)
         summary["strategies"] = experiment_tick(market, ts)
-        summary["version"] = "paper-3"
+        summary["version"] = "paper-4"
         tmp=STATUS.with_suffix(".tmp")
         tmp.write_text(json.dumps(summary,ensure_ascii=False),encoding="utf-8")
         tmp.replace(STATUS)
