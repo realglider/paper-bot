@@ -12,6 +12,7 @@ import pathlib
 import sqlite3
 import time
 import math
+import email.utils
 import urllib.request
 from urllib.error import HTTPError, URLError
 
@@ -36,45 +37,76 @@ COOLDOWN_SEC = 3 * 3600
 def now() -> int:
     return int(time.time())
 
+# One upstream request per scan, with a shared cooldown after HTTP 429.
+_next_request=0.0
+_rate_strikes=0
+_market_turn=0
+
+class RateLimited(Exception):
+    pass
+
 def get_json(path):
-    request = urllib.request.Request(API_ROOT + path, headers={
-        "Accept": "application/json", "User-Agent": "SolanaEdgePaper/2.0"
+    global _next_request, _rate_strikes
+    if time.monotonic() < _next_request:
+        raise RateLimited("GeckoTerminal cooldown active")
+    # Start-to-start spacing, even when called by a different code path.
+    _next_request=time.monotonic()+30
+    request=urllib.request.Request(API_ROOT+path,headers={
+        "Accept":"application/json","User-Agent":"SolanaEdgePaper/2.1"
     })
-    with urllib.request.urlopen(request, timeout=18) as response:
-        data = json.load(response)
-    if not isinstance(data.get("data"), list):
+    try:
+        with urllib.request.urlopen(request,timeout=18) as response:
+            data=json.load(response)
+    except HTTPError as exc:
+        if exc.code!=429:
+            raise
+        _rate_strikes+=1
+        delay=min(600,60*2**min(_rate_strikes-1,4))
+        header=exc.headers.get("Retry-After") if exc.headers else None
+        if header:
+            try:
+                delay=max(delay,float(header))
+            except ValueError:
+                try:
+                    retry=email.utils.parsedate_to_datetime(header)
+                    delay=max(delay,retry.timestamp()-time.time())
+                except (ValueError,TypeError,OverflowError):
+                    pass
+        _next_request=time.monotonic()+delay
+        raise RateLimited("GeckoTerminal HTTP 429: pause requested") from exc
+    if not isinstance(data.get("data"),list):
         raise ValueError("Unexpected GeckoTerminal response")
+    _rate_strikes=0
     return data["data"]
 
 
 def get_market(db):
-    """Track existing pools even after they drop out of Trending.
-
-    Discovery is a point-in-time universe; multi lookup keeps continuity for
-    tracked pools and prevents open positions from becoming invisible.
-    """
-    trending = get_json("new_pools?page=1" if int(now()/60)%2 else "trending_pools?page=1")
-    known = {str((p.get("attributes") or {}).get("address") or
-                 str(p.get("id", "")).removeprefix("solana_")): p
-             for p in trending}
-    old = [r["pool"] for r in db.execute(
-        """SELECT pool FROM prices WHERE ts>=? GROUP BY pool
-           ORDER BY MAX(ts) DESC LIMIT 20""", (now()-48*3600,))]
-    active = [r["pool"] for r in db.execute("SELECT pool FROM positions")]
+    """Use one request per scan. Alternate discovery and active-pool refresh."""
+    global _market_turn
+    turn=_market_turn%4
+    active=[r["pool"] for r in db.execute("SELECT pool FROM positions")]
     active += [r["pool"] for r in db.execute("SELECT pool FROM pending")]
-    follow = list(dict.fromkeys(active + old))
-    missing = [address for address in follow
-               if address not in known and 32 <= len(address) <= 55][:20]
-    if missing and int(now()/30)%2 == 0:
-        try:
-            for p in get_json("pools/multi/" + ",".join(missing)):
-                a = p.get("attributes") or {}
-                addr = str(a.get("address") or str(p.get("id", "")).removeprefix("solana_"))
-                known[addr] = p
-        except (HTTPError, URLError, TimeoutError, ValueError) as err:
-            # Do not lose the normal trending scan when enrichment is rate-limited.
-            print("WARN existing-pool refresh: " + str(err)[:150])
-    return list(known.values())
+    # Experiments have separate persistent tables. Prioritize their open
+    # positions and pending signals rather than only the legacy portfolio.
+    if V7.exists():
+        with sqlite3.connect(V7,timeout=20) as research:
+            tables={r[0] for r in research.execute("SELECT name FROM sqlite_master WHERE type='table'")}
+            for table in ("opens","rb_opens","signals","rb_signals"):
+                if table in tables:
+                    active += [r[0] for r in research.execute("SELECT DISTINCT pool FROM "+table)]
+    old=[r["pool"] for r in db.execute(
+        """SELECT pool FROM prices WHERE ts>=? AND liquidity>=40000
+           GROUP BY pool ORDER BY MAX(ts) DESC, MAX(volume24) DESC LIMIT 20""",
+        (now()-1800,))]
+    tracked=[a for a in dict.fromkeys(active+old)
+             if 32<=len(a)<=55 and a.isalnum()][:20]
+    if turn in (0,2) and tracked:
+        path="pools/multi/"+",".join(tracked)
+    else:
+        path="new_pools?page=1" if turn==3 else "trending_pools?page=1"
+    result=get_json(path)
+    _market_turn+=1
+    return result
 
 def connect():
     db = sqlite3.connect(DB, timeout=20)
@@ -293,7 +325,6 @@ def publish(db, ts, pools, messages, error=None):
                    "daily_loss_eur": MAX_DAILY_LOSS_EUR, "total_loss_eur": MAX_TOTAL_LOSS_EUR},
         "caveat": "Paper fills are based on snapshots and illustrative slippage; not executable quotes."
     }
-    STATUS.write_text(json.dumps(out, ensure_ascii=False, indent=2)+"\n", encoding="utf-8")
     return out
 
 # V7 experiments use a separate database; original account is retained unchanged.
@@ -500,28 +531,55 @@ def range_tick(market, ts):
                     positions=positions,closed_trades=trades,trade_count=trade_count,eligible=eligible,history_ready=ready,signals=matches,stale_positions=stale,notes=notes,
                     data_basis="20 completed sampled minute intervals; rolling 5m volume proxy; partial fills at observed prices")
 
+def write_status(summary):
+    tmp=STATUS.with_suffix(".tmp")
+    tmp.write_text(json.dumps(summary,ensure_ascii=False),encoding="utf-8")
+    tmp.replace(STATUS)
+
+def preserve_status(ts, state, error):
+    # The timestamp of the last successful market observation must remain
+    # unchanged. Do not recalculate equity or execute orders using stale data.
+    try:
+        summary=json.loads(STATUS.read_text(encoding="utf-8"))
+    except (OSError,ValueError):
+        summary={"mode":"PAPER","wallet_connected":False,"updated_at":None,"strategies":[]}
+    summary["status"]=state
+    summary["error"]=error
+    summary["last_attempt_at"]=dt.datetime.fromtimestamp(ts,dt.timezone.utc).isoformat()
+    summary["retry_at"]=dt.datetime.fromtimestamp(time.time()+max(0,_next_request-time.monotonic()),dt.timezone.utc).isoformat()
+    for a in summary.get("strategies",[]):
+        a["stale_positions"]=sum(ts-p.get("marked",0)>120 for p in a.get("positions",[]))
+    write_status(summary)
+    print(json.dumps({"status":state,"error":error,"retry_at":summary["retry_at"],"last_success_at":summary.get("updated_at")}),flush=True)
+
 def main():
     DB.parent.mkdir(parents=True, exist_ok=True)
     ts = now()
+    if time.monotonic() < _next_request:
+        # The previous 429 status already contains its next retry time.
+        return
     db = connect()
     try:
         market = get_market(db)
+        if not parse_pools(market,ts):
+            preserve_status(ts,"NO_DATA","No eligible fresh market observations")
+            return
         pools, messages = run_tick(db, market, ts)
         summary = publish(db, ts, pools, messages)
         summary["strategies"] = experiment_tick(market, ts)
         summary["strategies"].append(range_tick(market, ts))
-        summary["version"] = "paper-5"
-        tmp=STATUS.with_suffix(".tmp")
-        tmp.write_text(json.dumps(summary,ensure_ascii=False),encoding="utf-8")
-        tmp.replace(STATUS)
+        summary["version"] = "paper-6"
+        summary["last_attempt_at"]=summary["updated_at"]
+        summary["retry_at"]=None
+        write_status(summary)
         print(json.dumps({"experiments": [{"strategy":a["strategy"],"signals":a["signals"],"positions":len(a["positions"]),"trades":a["trade_count"]} for a in summary["strategies"]]}),flush=True)
         print(json.dumps({"status": "OK", "observed": len(pools),
                           "open": len(summary["positions"]), "closed": len(summary["closed_trades"]),
                           "equity": summary["equity_estimate_eur"], "messages": messages, "diagnostics":summary["diagnostics"]}))
+    except RateLimited as exc:
+        preserve_status(ts,"RATE_LIMITED",str(exc))
     except (HTTPError, URLError, TimeoutError, ValueError, OSError) as exc:
-        # Explicitly record outage; no paper orders on incomplete snapshots.
-        summary = publish(db, ts, {}, [], f"{type(exc).__name__}: {str(exc)[:140]}")
-        print(json.dumps({"status": "DEGRADED", "error": summary["error"]}))
+        preserve_status(ts,"DEGRADED",f"{type(exc).__name__}: {str(exc)[:140]}")
     finally:
         db.close()
 
