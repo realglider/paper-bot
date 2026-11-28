@@ -1,6 +1,6 @@
 {
   "version": "paper-2",
-  "updated_at": "2026-11-27T19:47:45+00:00",
+  "updated_at": "2026-11-28T02:13:50+00:00",
   "mode": "PAPER",
   "wallet_connected": false,
   "status": "OK",
@@ -13,10 +13,10 @@
   "positions": [],
   "closed_trades": [],
   "pending": [],
-  "observed_pools": 35,
+  "observed_pools": 36,
   "notes": [],
   "diagnostics": {
-    "observed": 35,
+    "observed": 36,
     "liquid": 23,
     "volume_ok": 19,
     "history_ok": 0,
