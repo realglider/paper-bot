@@ -1,6 +1,6 @@
 {
   "version": "paper-2",
-  "updated_at": "2026-11-28T10:26:29+00:00",
+  "updated_at": "2026-11-28T18:21:19+00:00",
   "mode": "PAPER",
   "wallet_connected": false,
   "status": "OK",
@@ -17,8 +17,8 @@
   "notes": [],
   "diagnostics": {
     "observed": 35,
-    "liquid": 19,
-    "volume_ok": 17,
+    "liquid": 20,
+    "volume_ok": 15,
     "history_ok": 0,
     "momentum_ok": 0,
     "queued": 0
